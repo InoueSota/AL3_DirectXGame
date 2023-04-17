@@ -67,7 +67,6 @@ void GameScene::Update() {
 		audio_->StopWave(voiceHandle_);
 	}
 
-	/*
 	// デバッグテキストの表示
 	ImGui::Begin("Debug1");
 	// float3入力ボックス
@@ -79,7 +78,6 @@ void GameScene::Update() {
 
 	// デモウィンドウの表示を有効化
 	ImGui::ShowDemoWindow();
-	*/
 
 	// デバッグカメラの更新
 	debugCamera_->Update();
@@ -127,7 +125,7 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに前景スプライトの描画処理を追加できる
 	/// </summary>
-	//sprite_->Draw();
+	sprite_->Draw();
 
 	// スプライト描画後処理
 	Sprite::PostDraw();
