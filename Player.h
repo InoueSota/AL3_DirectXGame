@@ -1,6 +1,7 @@
 #pragma once
 #include "Model.h"
 #include "WorldTransform.h"
+#include "ViewProjection.h"
 #include <cassert>
 
 
@@ -26,7 +27,8 @@ public:
 	/// <summary>
 	/// 描画
 	/// </summary>
-	void Draw();
+	/// <param name="viewProjection">ビュープロジェクション（参照渡し）</param>
+	void Draw(ViewProjection& viewProjection);
 
 private:
 	// ワールド変換データ
