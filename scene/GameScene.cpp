@@ -49,14 +49,17 @@ void GameScene::Update() {
 		isDebugCameraActive = true;
 	}
 	if (isDebugCameraActive) {
-		viewProjection_.matView = ;
+		// デバッグカメラの更新
+		debugCamera_->Update();
+		viewProjection_.matView = debugCamera_->matView;
+		viewProjection_.matProjection = debugCamera_->matProjection;
+		viewProjection_.TransferMatrix();
 	} else {
-
+		// ビュープロジェクション行列の更新と転送
+		viewProjection_.UpdateMatrix();
 	}
 
 #endif
-	// デバッグカメラの更新
-	debugCamera_->Update();
 }
 
 void GameScene::Draw() {
