@@ -4,6 +4,7 @@
 #include "ViewProjection.h"
 #include <cassert>
 #include "Input.h"
+#include <list>
 
 
 
@@ -45,7 +46,7 @@ private:
 	Input* input_ = nullptr;
 
 	// 弾
-	PlayerBullet* bullet_ = nullptr;
+	std::list<PlayerBullet*> bullets_;
 
 	/// <summary>
 	/// 旋回
