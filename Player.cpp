@@ -1,6 +1,7 @@
 #include "Player.h"
 #include "Matrix4x4.h"
 #include "ImGuiManager.h"
+#include "PlayerBullet.h"
 
 
 
@@ -28,6 +29,9 @@ void Player::Update() {
 
 	// 行列を定数バッファに転送
 	worldTransform_.TransferMatrix();
+
+	// 旋回処理
+	Rotate();
 
 	// キャラクターの移動ベクトル
 	Vector3 move = {0, 0, 0};
@@ -62,6 +66,14 @@ void Player::Update() {
 	worldTransform_.translation_.y = max(worldTransform_.translation_.y, -kMoveLimitY);
 	worldTransform_.translation_.y = min(worldTransform_.translation_.y, +kMoveLimitY);
 
+	// 攻撃処理
+	Attack();
+
+	// 弾更新
+	if (bullet_) {
+		bullet_->Update();
+	}
+
 	// ImGuiで値を入力する変数
 	float tmpFloat3[3] = {worldTransform_.translation_.x, worldTransform_.translation_.y, worldTransform_.translation_.z};
 
@@ -82,9 +94,40 @@ void Player::Update() {
 	worldTransform_.TransferMatrix();
 }
 
-void Player::Draw(ViewProjection& viewProjection) {
+void Player::Draw(const ViewProjection& viewProjection) {
 
 	// 3Dモデルを描画
 	model_->Draw(worldTransform_, viewProjection, textureHandle_);
 
+	// 弾描画
+	if (bullet_) {
+		bullet_->Draw(viewProjection);
+	}
+
+}
+
+void Player::Rotate() {
+	
+	// 回転速さ[ラジアン/frame]
+	const float kRotSpeed = 0.02f;
+
+	// 押した方向で移動ベクトルを変更
+	if (input_->PushKey(DIK_A)) {
+		worldTransform_.rotation_.y += kRotSpeed;
+	} else if (input_->PushKey(DIK_D)) {
+		worldTransform_.rotation_.y -= kRotSpeed;
+	}
+}
+
+void Player::Attack() {
+
+	if (input_->TriggerKey(DIK_SPACE)) {
+
+		// 弾を生成し、初期化
+		PlayerBullet* newBullet = new PlayerBullet();
+		newBullet->Initialize(model_, worldTransform_.translation_);
+
+		// 弾を登録する
+		bullet_ = newBullet;
+	}
 }
