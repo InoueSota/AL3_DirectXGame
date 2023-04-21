@@ -26,8 +26,15 @@ void Enemy::Initialize(Model* model, const Vector3& position, const Vector3& vel
 
 void Enemy::Update() {
 
-	// 座標を移動させる（1フレーム分の移動量を足しこむ）
-	worldTransform_.translation_ += velocity_;
+	switch (phase_) {
+	case Phase::Approach:
+	default:
+		Approach();
+		break;
+	case Phase::Leave:
+		Leave();
+		break;
+	}
 
 	// WorldTransformの更新
 	worldTransform_.UpdateMatrix();
@@ -37,4 +44,22 @@ void Enemy::Draw(const ViewProjection& viewProjection) {
 
 	// 3Dモデルを描画
 	model_->Draw(worldTransform_, viewProjection, textureHandle_);
+}
+
+void Enemy::Approach() {
+	// 移動（ベクトルを加算）
+	worldTransform_.translation_ += velocity_;
+	// 規定の位置に到達したら離脱
+	if (worldTransform_.translation_.z < 0.0f) {
+		phase_ = Phase::Leave;
+	}
+}
+
+void Enemy::Leave() {
+	// 移動（ベクトルを加算）
+	worldTransform_.translation_ += {velocity_.x, velocity_.y, -velocity_.z};
+	// 規定の位置に到達したら接近
+	if (worldTransform_.translation_.z > 20.0f) {
+		phase_ = Phase::Approach;
+	}
 }

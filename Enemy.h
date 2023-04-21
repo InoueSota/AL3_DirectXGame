@@ -41,6 +41,22 @@ private:
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0u;
 
+	// 行動フェーズ
+	enum class Phase {
+		Approach,	// 接近する
+		Leave		// 離脱する
+	};
+
+	// フェーズ
+	Phase phase_ = Phase::Approach;
+
 	// 速度
 	Vector3 velocity_;
+
+	// 接近関数
+	void Approach();
+
+	// 離脱する
+	void Leave();
+
 };
