@@ -34,11 +34,6 @@ public:
 	void SetNearZ(float value) { viewProjection_.nearZ = value; }
 	void SetFarZ(float value) { viewProjection_.farZ = value; }
 
-	// ビュー行列
-	Matrix4x4 matView;
-	// 射影行列
-	Matrix4x4 matProjection;
-
 private:
 	// 入力クラスのポインタ
 	Input* input_;
