@@ -50,13 +50,15 @@ private:
 	// フェーズ
 	Phase phase_ = Phase::Approach;
 
-	// 速度
-	Vector3 velocity_;
-
 	// 接近関数
 	void Approach();
-
 	// 離脱する
 	void Leave();
+
+	// 行動関数ポインタ
+	static void (Enemy::*spPhaseFunc[])();
+
+	// 速度
+	Vector3 velocity_;
 
 };

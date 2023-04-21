@@ -22,10 +22,17 @@ void Enemy::Initialize(Model* model, const Vector3& position, const Vector3& vel
 
 	// 引数で受け取った速度をメンバ変数に代入
 	velocity_ = velocity;
+
 }
+
+void (Enemy::*Enemy::spPhaseFunc[])() = {
+	&Enemy::Approach,
+	&Enemy::Leave
+};
 
 void Enemy::Update() {
 
+	/*
 	switch (phase_) {
 	case Phase::Approach:
 	default:
@@ -35,6 +42,10 @@ void Enemy::Update() {
 		Leave();
 		break;
 	}
+	*/
+
+	// 行動関数ポインタに入っている関数を呼び出す
+	(this->*spPhaseFunc[static_cast<size_t>(phase_)])();
 
 	// WorldTransformの更新
 	worldTransform_.UpdateMatrix();
