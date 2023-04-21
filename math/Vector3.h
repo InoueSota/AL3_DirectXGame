@@ -22,6 +22,7 @@ struct Vector3 final {
 	Vector3 operator+=(const Vector3& other) {
 		x += other.x;
 		y += other.y;
+		z += other.z;
 		return *this;
 	}
 
@@ -59,5 +60,8 @@ struct Vector3 final {
 
 	// 座標変換
 	Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix);
+
+	// ベクトル変換
+	static Vector3 TransformNormal(const Vector3& vector, const Matrix4x4& matrix);
 
 };
