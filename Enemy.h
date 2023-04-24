@@ -6,6 +6,8 @@
 
 
 
+class BaseEnemyState;
+
 /// <summary>
 /// 敵
 /// </summary>
@@ -33,6 +35,21 @@ public:
 	/// <param name="viewProjection">ビュープロジェクション（参照渡し）</param>
 	void Draw(const ViewProjection& viewProjection);
 
+	/// <summary>
+	/// 行動遷移
+	/// </summary>
+	void ChangeState(BaseEnemyState* newState);
+
+	/// <summary>
+	/// 移動
+	/// </summary>
+	void Move(const Vector3& vector);
+
+	/// <summary>
+	/// 現在座標の取得
+	/// </summary>
+	inline Vector3 GetEnemyPosition() { return worldTransform_.translation_; }
+
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;
@@ -41,6 +58,7 @@ private:
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0u;
 
+	/*
 	// 行動フェーズ
 	enum class Phase {
 		Approach,	// 接近する
@@ -57,8 +75,11 @@ private:
 
 	// 行動関数ポインタ
 	static void (Enemy::*spPhaseFunc[])();
+	*/
+
+	// 行動遷移
+	BaseEnemyState* state_ = nullptr;
 
 	// 速度
 	Vector3 velocity_;
-
 };

@@ -1,9 +1,18 @@
 #include "Enemy.h"
 #include <cassert>
+#include "BaseEnemyState.h"
 
 
-Enemy::Enemy() {}
-Enemy::~Enemy() {}
+Enemy::Enemy() {
+	
+	// 行動遷移
+	state_ = new EnemyStateApproach();
+}
+Enemy::~Enemy() {
+	
+	// 行動遷移の解放
+	delete state_;
+}
 
 void Enemy::Initialize(Model* model, const Vector3& position, const Vector3& velocity) {
 
@@ -25,10 +34,12 @@ void Enemy::Initialize(Model* model, const Vector3& position, const Vector3& vel
 
 }
 
+/*
 void (Enemy::*Enemy::spPhaseFunc[])() = {
 	&Enemy::Approach,
 	&Enemy::Leave
 };
+*/
 
 void Enemy::Update() {
 
@@ -42,10 +53,12 @@ void Enemy::Update() {
 		Leave();
 		break;
 	}
-	*/
 
 	// 行動関数ポインタに入っている関数を呼び出す
 	(this->*spPhaseFunc[static_cast<size_t>(phase_)])();
+	*/
+
+	state_->Update(this);
 
 	// WorldTransformの更新
 	worldTransform_.UpdateMatrix();
@@ -57,6 +70,20 @@ void Enemy::Draw(const ViewProjection& viewProjection) {
 	model_->Draw(worldTransform_, viewProjection, textureHandle_);
 }
 
+void Enemy::ChangeState(BaseEnemyState* newState) {
+
+	// 状態遷移
+	delete state_;
+	state_ = newState;
+}
+
+void Enemy::Move(const Vector3& vector) {
+
+	// 受け取った引数分、敵を動かす
+	worldTransform_.translation_ += vector;
+}
+
+/*
 void Enemy::Approach() {
 	// 移動（ベクトルを加算）
 	worldTransform_.translation_ += velocity_;
@@ -74,3 +101,4 @@ void Enemy::Leave() {
 		phase_ = Phase::Approach;
 	}
 }
+*/
