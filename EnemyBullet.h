@@ -1,19 +1,18 @@
 #pragma once
-#include "Player.h"
+#include "Enemy.h"
 #include "Model.h"
 #include "Vector3.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
 
 
-
 /// <summary>
-/// 自キャラの弾
+/// 敵キャラの弾
 /// </summary>
-class PlayerBullet : public  Player {
+class EnemyBullet : public Enemy {
 public:
-	PlayerBullet();
-	~PlayerBullet();
+	EnemyBullet();
+	~EnemyBullet();
 
 	/// <summary>
 	/// 初期化

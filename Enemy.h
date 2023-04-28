@@ -3,8 +3,10 @@
 #include "Vector3.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
+#include <list>
 
 
+class EnemyBullet;
 
 class BaseEnemyState;
 
@@ -15,6 +17,9 @@ class Enemy {
 public:
 	Enemy();
 	~Enemy();
+
+	// 発射間隔
+	static const int kFireInterval = 60;
 
 	/// <summary>
 	/// 初期化
@@ -46,6 +51,16 @@ public:
 	void Move(const Vector3& vector);
 
 	/// <summary>
+	/// 移動初期化
+	/// </summary>
+	void MoveInitialize();
+
+	/// <summary>
+	/// 弾発射
+	/// </summary>
+	void Fire();
+
+	/// <summary>
 	/// 現在座標の取得
 	/// </summary>
 	inline Vector3 GetEnemyPosition() { return worldTransform_.translation_; }
@@ -58,24 +73,10 @@ private:
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0u;
 
-	/*
-	// 行動フェーズ
-	enum class Phase {
-		Approach,	// 接近する
-		Leave		// 離脱する
-	};
-
-	// フェーズ
-	Phase phase_ = Phase::Approach;
-
-	// 接近関数
-	void Approach();
-	// 離脱する
-	void Leave();
-
-	// 行動関数ポインタ
-	static void (Enemy::*spPhaseFunc[])();
-	*/
+	// 弾
+	std::list<std::unique_ptr<EnemyBullet>> bullets_;
+	// 発射タイマー
+	int32_t fireTimer_ = 0;
 
 	// 行動遷移
 	BaseEnemyState* state_ = nullptr;
