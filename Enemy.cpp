@@ -47,11 +47,24 @@ void Enemy::Update() {
 		}
 		return false;
 	});
+	
+	// 終了したタイマーを削除
+	timedCalls_.remove_if([](std::unique_ptr<TimedCall>& timedCall) {
+		if (timedCall->IsFinished()) {
+			return true;
+		}
+		return false;
+	});
 
 	state_->Update(this);
 
 	// 弾更新
 	for (std::list<std::unique_ptr<EnemyBullet>>::iterator it = bullets_.begin(); it != bullets_.end(); ++it) {
+		(*it)->Update();
+	}
+
+	// 他フェーズに以降する時はこの処理をしないようにする
+	for (std::list<std::unique_ptr<TimedCall>>::iterator it = timedCalls_.begin(); it != timedCalls_.end(); ++it) {
 		(*it)->Update();
 	}
 
@@ -78,24 +91,14 @@ void Enemy::ChangeState(BaseEnemyState* newState) {
 }
 
 void Enemy::MoveInitialize() {
-	// 発射タイマーを初期化
-	fireTimer_ = kFireInterval;
+	// 発射タイマーをセットする
+	FireAndReset();
 }
 
 void Enemy::Move(const Vector3& vector) {
 
 	// 受け取った引数分、敵を動かす
 	worldTransform_.translation_ += vector;
-
-	// 発射タイマーをデクリメント
-	fireTimer_--;
-	// 指定時間に達した
-	if (fireTimer_ == 0) {
-		// 弾を発射
-		Fire();
-		// 発射タイマーを初期化
-		fireTimer_ = kFireInterval;
-	}
 }
 
 void Enemy::Fire() {
@@ -113,4 +116,12 @@ void Enemy::Fire() {
 
 	// 弾を登録する
 	bullets_.push_back(std::move(newBullet));
+}
+
+void Enemy::FireAndReset() {
+
+	// 弾を発射
+	Fire();
+	// 発射タイマーをセットする
+	timedCalls_.push_back(std::move(std::make_unique<TimedCall>(std::bind(&Enemy::FireAndReset, this), kFireInterval)));
 }

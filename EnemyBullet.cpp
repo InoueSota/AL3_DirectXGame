@@ -2,7 +2,7 @@
 
 
 
-EnemyBullet::EnemyBullet() {}
+EnemyBullet::EnemyBullet() : isDead_(false) {}
 EnemyBullet::~EnemyBullet() {}
 
 void EnemyBullet::Initialize(Model* model, const Vector3& position, const Vector3& velocity) {

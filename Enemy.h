@@ -3,11 +3,12 @@
 #include "Vector3.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
+#include "TimedCall.h"
 #include <list>
+#include <functional>
 
 
 class EnemyBullet;
-
 class BaseEnemyState;
 
 /// <summary>
@@ -61,6 +62,11 @@ public:
 	void Fire();
 
 	/// <summary>
+	/// 弾を発射し、タイマーをリセットするコールバック関数
+	/// </summary>
+	void FireAndReset();
+
+	/// <summary>
 	/// 現在座標の取得
 	/// </summary>
 	inline Vector3 GetEnemyPosition() { return worldTransform_.translation_; }
@@ -77,6 +83,8 @@ private:
 	std::list<std::unique_ptr<EnemyBullet>> bullets_;
 	// 発射タイマー
 	int32_t fireTimer_ = 0;
+	// 時限発動のリスト
+	std::list<std::unique_ptr<TimedCall>> timedCalls_;
 
 	// 行動遷移
 	BaseEnemyState* state_ = nullptr;
