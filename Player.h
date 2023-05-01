@@ -34,6 +34,21 @@ public:
 	/// <param name="viewProjection">ビュープロジェクション（参照渡し）</param>
 	void Draw(const ViewProjection& viewProjection);
 
+	/// <summary>
+	/// 旋回
+	/// </summary>
+	void Rotate();
+
+	/// <summary>
+	/// 攻撃
+	/// </summary>
+	void Attack();
+
+	/// <summary>
+	/// ワールド座標を取得
+	/// </summary>
+	Vector3 GetWorldPosition() { return worldTransform_.translation_; }
+
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;
@@ -47,16 +62,6 @@ private:
 
 	// 弾
 	std::list<PlayerBullet*> bullets_;
-
-	/// <summary>
-	/// 旋回
-	/// </summary>
-	void Rotate();
-
-	/// <summary>
-	/// 攻撃
-	/// </summary>
-	void Attack();
 
 };
 

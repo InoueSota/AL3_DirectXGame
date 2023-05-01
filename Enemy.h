@@ -6,10 +6,13 @@
 #include "TimedCall.h"
 #include <list>
 #include <functional>
+#include <memory>
 
 
+// 前方宣言
 class EnemyBullet;
 class BaseEnemyState;
+class Player;
 
 /// <summary>
 /// 敵
@@ -71,6 +74,16 @@ public:
 	/// </summary>
 	inline Vector3 GetEnemyPosition() { return worldTransform_.translation_; }
 
+	/// <summary>
+	/// プレイヤーのポインタを共有する
+	/// </summary>
+	void SetPlayer(Player* player) { player_ = player; }
+
+	/// <summary>
+	/// ワールド座標を取得
+	/// </summary>
+	Vector3 GetWorldPosition() { return worldTransform_.translation_; }
+
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;
@@ -88,7 +101,12 @@ private:
 
 	// 行動遷移
 	BaseEnemyState* state_ = nullptr;
+	// 行動が変わっていないか
+	bool isChangeState_ = false;
 
 	// 速度
 	Vector3 velocity_;
+
+	// 自キャラ
+	Player* player_ = nullptr;
 };

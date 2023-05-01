@@ -30,10 +30,17 @@ struct Vector3 final {
 	Vector3 Subtract(const Vector3& v1, const Vector3& v2) {
 		return {v1.x - v2.x, v1.y - v2.y, v1.z - v2.z};
 	}
+	Vector3 operator-(const Vector3& other) { return Subtract({x, y, z}, other); }
 
 	// スカラー倍
 	Vector3 Multiply(float scalar, const Vector3& v) {
 		return {scalar * v.x, scalar * v.y, scalar * v.z};
+	}
+	Vector3 operator*=(float scalar) {
+		x *= scalar;
+		y *= scalar;
+		z *= scalar;
+		return *this;
 	}
 
 	// 内積
@@ -42,20 +49,17 @@ struct Vector3 final {
 	}
 
 	// 長さ（ノルム）
-	float Length(const Vector3& v) { return {std::sqrt(Dot(v, v))}; }
+	float Length() { return std::sqrt(Dot({x, y, z}, {x, y, z})); }
 
 	// 正規化
-	Vector3 Normalize(const Vector3& v) {
+	Vector3 Normalize() {
 
-		Vector3 tmpVector3 = {0, 0, 0};
-
-		if (Length(v) != 0) {
-			tmpVector3.x = v.x / Length(v);
-			tmpVector3.y = v.y / Length(v);
-			tmpVector3.z = v.z / Length(v);
+		if (Length() != 0) {
+			x = x / Length();
+			y = y / Length();
+			z = z / Length();
 		}
-
-		return tmpVector3;
+		return *this;
 	}
 
 	// 座標変換
@@ -63,5 +67,4 @@ struct Vector3 final {
 
 	// ベクトル変換
 	static Vector3 TransformNormal(const Vector3& vector, const Matrix4x4& matrix);
-
 };

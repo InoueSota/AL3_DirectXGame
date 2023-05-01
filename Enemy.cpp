@@ -2,6 +2,7 @@
 #include "EnemyBullet.h"
 #include <cassert>
 #include "BaseEnemyState.h"
+#include "Player.h"
 
 
 Enemy::Enemy() {
@@ -63,7 +64,6 @@ void Enemy::Update() {
 		(*it)->Update();
 	}
 
-	// 他フェーズに以降する時はこの処理をしないようにする
 	for (std::list<std::unique_ptr<TimedCall>>::iterator it = timedCalls_.begin(); it != timedCalls_.end(); ++it) {
 		(*it)->Update();
 	}
@@ -88,6 +88,9 @@ void Enemy::ChangeState(BaseEnemyState* newState) {
 	// 状態遷移
 	delete state_;
 	state_ = newState;
+
+	// 遷移した
+	isChangeState_ = true;
 }
 
 void Enemy::MoveInitialize() {
@@ -103,12 +106,15 @@ void Enemy::Move(const Vector3& vector) {
 
 void Enemy::Fire() {
 
+	assert(player_);
+
 	// 弾の速度
 	const float kBulletSpeed = 1.0f;
-	Vector3 velocity(0, 0, -kBulletSpeed);
 
-	// 速度ベクトルを目標の向きに合わせて回転させる
-	velocity = Vector3::TransformNormal(velocity, worldTransform_.matWorld_);
+	// 敵キャラ→自キャラの差分ベクトルを求める
+	Vector3 velocity = player_->GetWorldPosition() - GetWorldPosition();
+	velocity.Normalize();
+	velocity *= kBulletSpeed;
 
 	// 弾を生成し、初期化
 	std::unique_ptr<EnemyBullet>newBullet = std::make_unique<EnemyBullet>();
@@ -123,5 +129,7 @@ void Enemy::FireAndReset() {
 	// 弾を発射
 	Fire();
 	// 発射タイマーをセットする
-	timedCalls_.push_back(std::move(std::make_unique<TimedCall>(std::bind(&Enemy::FireAndReset, this), kFireInterval)));
+	if (!isChangeState_) {
+		timedCalls_.push_back(std::move(std::make_unique<TimedCall>(std::bind(&Enemy::FireAndReset, this), kFireInterval)));
+	}
 }
