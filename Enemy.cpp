@@ -59,12 +59,12 @@ void Enemy::Update() {
 
 	state_->Update(this);
 
-	// 弾更新
-	for (std::list<std::unique_ptr<EnemyBullet>>::iterator it = bullets_.begin(); it != bullets_.end(); ++it) {
+	for (std::list<std::unique_ptr<TimedCall>>::iterator it = timedCalls_.begin(); it != timedCalls_.end(); ++it) {
 		(*it)->Update();
 	}
 
-	for (std::list<std::unique_ptr<TimedCall>>::iterator it = timedCalls_.begin(); it != timedCalls_.end(); ++it) {
+	// 弾更新
+	for (std::list<std::unique_ptr<EnemyBullet>>::iterator it = bullets_.begin(); it != bullets_.end(); ++it) {
 		(*it)->Update();
 	}
 
@@ -118,7 +118,7 @@ void Enemy::Fire() {
 
 	// 弾を生成し、初期化
 	std::unique_ptr<EnemyBullet>newBullet = std::make_unique<EnemyBullet>();
-	newBullet->Initialize(model_, worldTransform_.translation_, velocity);
+	newBullet->Initialize(model_, GetWorldPosition(), velocity);
 
 	// 弾を登録する
 	bullets_.push_back(std::move(newBullet));
