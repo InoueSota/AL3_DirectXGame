@@ -113,12 +113,15 @@ void Enemy::Fire() {
 
 	// 敵キャラ→自キャラの差分ベクトルを求める
 	Vector3 velocity = player_->GetWorldPosition() - GetWorldPosition();
-	velocity.Normalize();
+	velocity = velocity.Normalize();
 	velocity *= kBulletSpeed;
 
 	// 弾を生成し、初期化
 	std::unique_ptr<EnemyBullet>newBullet = std::make_unique<EnemyBullet>();
 	newBullet->Initialize(model_, GetWorldPosition(), velocity);
+
+	// 弾にも自キャラの情報を共有
+	newBullet->SetPlayer(player_);
 
 	// 弾を登録する
 	bullets_.push_back(std::move(newBullet));

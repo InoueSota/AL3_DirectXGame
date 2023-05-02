@@ -6,6 +6,7 @@
 #include "WorldTransform.h"
 
 
+class Player;
 /// <summary>
 /// 敵キャラの弾
 /// </summary>
@@ -33,7 +34,15 @@ public:
 	/// <param name="viewProjection">ビュープロジェクション（参照渡し）</param>
 	void Draw(const ViewProjection& viewProjection);
 
+	/// <summary>
+	/// 弾の寿命が尽きたかの判定
+	/// </summary>
 	inline bool IsDead() const { return isDead_; }
+
+	/// <summary>
+	/// プレイヤーのポインタを共有する
+	/// </summary>
+	void SetPlayer(Player* player) { player_ = player; }
 
 private:
 	// ワールド変換データ
@@ -52,5 +61,8 @@ private:
 	int32_t deathTimer_ = kLifeTime;
 	// デスフラグ
 	bool isDead_ = false;
+
+	// 自キャラのポインタ
+	Player* player_ = nullptr;
 };
 
