@@ -11,15 +11,15 @@ GameScene::~GameScene() {
 
 	// 3Dモデルデータの解放
 	delete model_;
-
-	// 自キャラの解放
-	delete player_;
-
-	//敵キャラの解放
-	delete enemy_;
+	delete modelSkydome_;
 
 	// デバッグカメラの解放
 	delete debugCamera_;
+
+	// 自キャラの解放
+	delete player_;
+	// 敵キャラ
+	delete enemy_;
 }
 
 void GameScene::Initialize() {
@@ -32,13 +32,17 @@ void GameScene::Initialize() {
 	textureHandle_ = TextureManager::Load("mario.jpg");
 	// 3Dモデルデータの生成
 	model_ = Model::Create();
+	modelSkydome_ = Model::CreateFromOBJ("aurora", true);
 
 	// ビュープロジェクションの初期化
 	viewProjection_.Initialize();
 
-	// 自キャラの生成
-	player_ = new Player();
+	// 天球の初期化
+	skydome_ = std::make_unique<Skydome>();
+	skydome_->Initialize(modelSkydome_);
+
 	// 自キャラの初期化
+	player_ = new Player();
 	player_->Initialize(model_, textureHandle_);
 
 	// 敵キャラの生成
@@ -58,6 +62,9 @@ void GameScene::Initialize() {
 }
 
 void GameScene::Update() {
+
+	// 天球の更新
+	skydome_->Update();
 	
 	// 自キャラの更新
 	player_->Update();
@@ -114,6 +121,9 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに3Dオブジェクトの描画処理を追加できる
 	/// </summary>
+	
+	// 天球の描画
+	skydome_->Draw(viewProjection_);
 
 	// 自キャラの描画
 	player_->Draw(viewProjection_);

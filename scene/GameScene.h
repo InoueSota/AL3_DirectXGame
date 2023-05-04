@@ -10,6 +10,7 @@
 #include "WorldTransform.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "Skydome.h"
 #include "DebugCamera.h"
 
 /// <summary>
@@ -57,6 +58,7 @@ private: // メンバ変数
 	uint32_t textureHandle_ = 0;
 	// 3Dモデルデータ
 	Model* model_ = nullptr;
+	Model* modelSkydome_ = nullptr;
 
 	// ビュープロジェクション
 	ViewProjection viewProjection_;
@@ -65,12 +67,13 @@ private: // メンバ変数
 	/// ゲームシーン用
 	/// </summary>
 
+	// 天球
+	std::unique_ptr<Skydome> skydome_;
 	// 自キャラ
 	Player* player_ = nullptr;
-
 	// 敵キャラ
 	Enemy* enemy_ = nullptr;
-
+	
 	// デバッグカメラ有効
 	bool isDebugCameraActive = false;
 	// デバッグカメラ
