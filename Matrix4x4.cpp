@@ -37,3 +37,5 @@ Matrix4x4 Matrix4x4::MakeAffineMatrix(const Vector3& scale, const Vector3& rotat
 
 	return affineMatrix;
 }
+
+Vector3 Matrix4x4::GetTranslate() const { return {m[3][0], m[3][1], m[3][2]}; };

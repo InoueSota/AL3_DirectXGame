@@ -8,6 +8,7 @@
 #include "Sprite.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
+#include "RailCamera.h"
 #include "Player.h"
 #include "Enemy.h"
 #include "Skydome.h"
@@ -67,8 +68,10 @@ private: // メンバ変数
 	/// ゲームシーン用
 	/// </summary>
 
+	// レールカメラ
+	std::unique_ptr<RailCamera> railCamera_;
 	// 天球
-	std::unique_ptr<Skydome> skydome_;
+	std::unique_ptr<Skydome> skyDome_;
 	// 自キャラ
 	Player* player_ = nullptr;
 	// 敵キャラ

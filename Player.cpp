@@ -19,7 +19,7 @@ void Player::Initialize(Model* model, uint32_t textureHandle) {
 
 	// ワールド変換の初期化
 	worldTransform_.Initialize();
-	worldTransform_.translation_ = {10.0f, 0.0f, 0.0f};
+	worldTransform_.translation_ = {-20.0f, 0.0f, 50.0f};
 
 	// シングルトンインスタンスを取得する
 	input_ = Input::GetInstance();
@@ -34,9 +34,6 @@ void Player::Update() {
 		}
 		return false;
 	});
-
-	// 行列を定数バッファに転送
-	worldTransform_.TransferMatrix();
 
 	// 旋回処理
 	Rotate();
@@ -84,10 +81,9 @@ void Player::Update() {
 
 	// ImGuiで値を入力する変数
 	float tmpFloat3[3] = {worldTransform_.translation_.x, worldTransform_.translation_.y, worldTransform_.translation_.z};
-
 	// キャラクターの座標を画面表示する処理
-	ImGui::Begin(" ");
-	ImGui::SliderFloat3("Player", tmpFloat3, -30.0f, 30.0f);
+	ImGui::Begin("Player");
+	ImGui::SliderFloat3("position", tmpFloat3, -50.0f, 50.0f);
 	ImGui::End();
 
 	// 入力された値をポジションに代入する
@@ -95,11 +91,8 @@ void Player::Update() {
 	worldTransform_.translation_.y = tmpFloat3[1];
 	worldTransform_.translation_.z = tmpFloat3[2];
 
-	// 行列更新
-	worldTransform_.matWorld_ = Matrix4x4::MakeAffineMatrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
-
-	// 行列を定数バッファに転送
-	worldTransform_.TransferMatrix();
+	// 行列更新と転送
+	worldTransform_.UpdateMatrix();
 }
 
 void Player::Draw(const ViewProjection& viewProjection) {
@@ -139,10 +132,16 @@ void Player::Attack() {
 
 		// 弾を生成し、初期化
 		std::unique_ptr<PlayerBullet> newBullet = std::make_unique<PlayerBullet>();
-		newBullet->Initialize(model_, worldTransform_.translation_, velocity);
+		newBullet->Initialize(model_, worldTransform_.matWorld_.GetTranslate(), velocity);
 
 		// 弾を登録する
 		bullets_.push_back(std::move(newBullet));
 	}
 }
 
+// 親となるWorldTransformをセット
+void Player::SetParent(const WorldTransform* parent) {
+
+	// 親子関係を結ぶ
+	worldTransform_.parent_ = parent;
+}

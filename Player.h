@@ -47,7 +47,7 @@ public:
 	/// <summary>
 	/// ワールド座標を取得
 	/// </summary>
-	Vector3 GetWorldPosition() { return worldTransform_.translation_; }
+	Vector3 GetWorldPosition() { return worldTransform_.matWorld_.GetTranslate(); }
 
 	/// <summary>
 	/// 衝突を検出したら呼び出されるコールバック関数
@@ -58,6 +58,12 @@ public:
 	/// 弾リストを取得
 	/// </summary>
 	std::list<std::unique_ptr<PlayerBullet>>& GetBullets() { return bullets_; }
+
+	/// <summary>
+	/// 親となるWorldTransformをセット
+	/// </summary>
+	/// <param name="parent">親となるWorldTransform</param>
+	void SetParent(const WorldTransform* parent);
 
 private:
 	// ワールド変換データ

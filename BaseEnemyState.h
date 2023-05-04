@@ -18,7 +18,7 @@ public:
 	void Update(Enemy* pEnemy);
 
 private:
-	Vector3 velocity = { 0.0f, 0.0f, -0.2f };
+	Vector3 velocity = { 0.0f, 0.0f, -0.0f };
 };
 
 class EnemyStateLeave : public BaseEnemyState {

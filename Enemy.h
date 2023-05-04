@@ -82,7 +82,7 @@ public:
 	/// <summary>
 	/// ワールド座標を取得
 	/// </summary>
-	Vector3 GetWorldPosition() { return worldTransform_.translation_; }
+	const Vector3& GetWorldPosition() const { return worldTransform_.translation_; }
 
 	/// <summary>
 	/// 衝突を検出したら呼び出されるコールバック関数
