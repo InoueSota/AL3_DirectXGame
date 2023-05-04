@@ -6,14 +6,7 @@
 
 
 Player::Player() {}
-
-Player::~Player() {
-
-	// 弾の解放
-	for (PlayerBullet* bullet : bullets_) {
-		delete bullet;
-	}
-}
+Player::~Player() {}
 
 void Player::Initialize(Model* model, uint32_t textureHandle) {
 
@@ -26,6 +19,7 @@ void Player::Initialize(Model* model, uint32_t textureHandle) {
 
 	// ワールド変換の初期化
 	worldTransform_.Initialize();
+	worldTransform_.translation_ = {10.0f, 0.0f, 0.0f};
 
 	// シングルトンインスタンスを取得する
 	input_ = Input::GetInstance();
@@ -34,9 +28,8 @@ void Player::Initialize(Model* model, uint32_t textureHandle) {
 void Player::Update() {
 
 	// デスフラグの立った弾を削除
-	bullets_.remove_if([](PlayerBullet* bullet) {
+	bullets_.remove_if([](std::unique_ptr<PlayerBullet>& bullet) {
 		if (bullet->IsDead()) {
-			delete bullet;
 			return true;
 		}
 		return false;
@@ -85,8 +78,8 @@ void Player::Update() {
 	Attack();
 
 	// 弾更新
-	for (PlayerBullet* bullet : bullets_) {
-		bullet->Update();
+	for (std::list<std::unique_ptr<PlayerBullet>>::iterator it = bullets_.begin(); it != bullets_.end(); ++it) {
+		(*it)->Update();
 	}
 
 	// ImGuiで値を入力する変数
@@ -115,10 +108,9 @@ void Player::Draw(const ViewProjection& viewProjection) {
 	model_->Draw(worldTransform_, viewProjection, textureHandle_);
 
 	// 弾描画
-	for (PlayerBullet* bullet : bullets_) {
-		bullet->Draw(viewProjection);
+	for (std::list<std::unique_ptr<PlayerBullet>>::iterator it = bullets_.begin(); it != bullets_.end(); ++it) {
+		(*it)->Draw(viewProjection);
 	}
-
 }
 
 void Player::Rotate() {
@@ -146,11 +138,11 @@ void Player::Attack() {
 		velocity = Vector3::TransformNormal(velocity, worldTransform_.matWorld_);
 
 		// 弾を生成し、初期化
-		PlayerBullet* newBullet = new PlayerBullet();
+		std::unique_ptr<PlayerBullet> newBullet = std::make_unique<PlayerBullet>();
 		newBullet->Initialize(model_, worldTransform_.translation_, velocity);
 
 		// 弾を登録する
-		bullets_.push_back(newBullet);
+		bullets_.push_back(std::move(newBullet));
 	}
 }
 

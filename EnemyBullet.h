@@ -40,9 +40,19 @@ public:
 	inline bool IsDead() const { return isDead_; }
 
 	/// <summary>
+	/// ワールド座標を取得
+	/// </summary>
+	Vector3 GetWorldPosition() { return worldTransform_.translation_; }
+
+	/// <summary>
 	/// プレイヤーのポインタを共有する
 	/// </summary>
 	void SetPlayer(Player* player) { player_ = player; }
+
+	/// <summary>
+	/// 衝突を検出したら呼び出されるコールバック関数
+	/// </summary>
+	void OnCollision();
 
 private:
 	// ワールド変換データ

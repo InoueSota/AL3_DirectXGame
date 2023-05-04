@@ -49,6 +49,16 @@ public:
 	/// </summary>
 	Vector3 GetWorldPosition() { return worldTransform_.translation_; }
 
+	/// <summary>
+	/// 衝突を検出したら呼び出されるコールバック関数
+	/// </summary>
+	void OnCollision(){};
+
+	/// <summary>
+	/// 弾リストを取得
+	/// </summary>
+	std::list<std::unique_ptr<PlayerBullet>>& GetBullets() { return bullets_; }
+
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;
@@ -61,7 +71,7 @@ private:
 	Input* input_ = nullptr;
 
 	// 弾
-	std::list<PlayerBullet*> bullets_;
+	std::list<std::unique_ptr<PlayerBullet>> bullets_;
 
 };
 
