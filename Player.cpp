@@ -134,9 +134,9 @@ void Player::Update(const ViewProjection& viewProjection) {
 	// ワールド→スクリーン座標変換（ここで3Dから2Dになる）
 	positionReticle = Vector3::Transform(positionReticle, matViewProjectionViewport);
 	// スプライトのレティクルに座標設定
-	sprite2DReticle_->SetPosition(Vector2(positionReticle.x, positionReticle.y));
+	//sprite2DReticle_->SetPosition(Vector2(positionReticle.x, positionReticle.y));
 
-	//MouseCursorReticle(viewProjection);
+	MouseCursorReticle(viewProjection);
 }
 
 void Player::Draw(const ViewProjection& viewProjection) {
@@ -171,15 +171,15 @@ void Player::Rotate() {
 
 void Player::Attack() {
 
-	//XINPUT_STATE joyState;
+	XINPUT_STATE joyState;
 
-	//// ゲームパッド未接続なら何もせず抜ける
-	//if (!Input::GetInstance()->GetJoystickState(0, joyState)) {
-	//	return;
-	//}
+	// ゲームパッド未接続なら何もせず抜ける
+	if (!Input::GetInstance()->GetJoystickState(0, joyState)) {
+		return;
+	}
 
-	//// Rトリガーを押していたら
-	//if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
+	// Rトリガーを押していたら
+	if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
 		// 弾の速度
 		const float kBulletSpeed = 1.5f;
 		Vector3 velocity = { worldTransform3DReticle_.matWorld_.GetTranslate() - worldTransform_.matWorld_.GetTranslate()};
@@ -194,7 +194,7 @@ void Player::Attack() {
 
 		// 弾を登録する
 		bullets_.push_back(std::move(newBullet));
-	//}
+	}
 
 }
 
