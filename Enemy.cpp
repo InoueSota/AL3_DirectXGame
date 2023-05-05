@@ -3,6 +3,7 @@
 #include <cassert>
 #include "BaseEnemyState.h"
 #include "Player.h"
+#include "GameScene.h"
 
 
 Enemy::Enemy() {
@@ -16,7 +17,8 @@ Enemy::~Enemy() {
 	delete state_;
 }
 
-void Enemy::Initialize(Model* model, const Vector3& position, const Vector3& velocity) {
+void Enemy::Initialize(
+    Model* model, const Vector3& position, const Vector3& velocity, GameScene* gameScene) {
 
 	// NULLポインタチェック
 	assert(model);
@@ -34,20 +36,15 @@ void Enemy::Initialize(Model* model, const Vector3& position, const Vector3& vel
 	// 引数で受け取った速度をメンバ変数に代入
 	velocity_ = velocity;
 
+	// ゲームシーンのポインタを共有
+	SetGameScene(gameScene);
+
 	// 移動初期化関数
 	MoveInitialize();
 
 }
 
 void Enemy::Update() {
-
-	// デスフラグの立った弾を削除
-	bullets_.remove_if([](std::unique_ptr<EnemyBullet>& bullet) {
-		if (bullet->IsDead()) {
-			return true;
-		}
-		return false;
-	});
 	
 	// 終了したタイマーを削除
 	timedCalls_.remove_if([](std::unique_ptr<TimedCall>& timedCall) {
@@ -63,11 +60,6 @@ void Enemy::Update() {
 		(*it)->Update();
 	}
 
-	// 弾更新
-	for (std::list<std::unique_ptr<EnemyBullet>>::iterator it = bullets_.begin(); it != bullets_.end(); ++it) {
-		(*it)->Update();
-	}
-
 	// WorldTransformの更新
 	worldTransform_.UpdateMatrix();
 }
@@ -76,11 +68,6 @@ void Enemy::Draw(const ViewProjection& viewProjection) {
 
 	// 3Dモデルを描画
 	model_->Draw(worldTransform_, viewProjection, textureHandle_);
-
-	// 弾描画
-	for (std::list<std::unique_ptr<EnemyBullet>>::iterator it = bullets_.begin(); it != bullets_.end(); ++it) {
-		(*it)->Draw(viewProjection);
-	}
 }
 
 void Enemy::ChangeState(BaseEnemyState* newState) {
@@ -108,23 +95,15 @@ void Enemy::Fire() {
 
 	assert(player_);
 
-	// 弾の速度
-	const float kBulletSpeed = 1.0f;
-
-	// 敵キャラ→自キャラの差分ベクトルを求める
-	Vector3 velocity = player_->GetWorldPosition() - GetWorldPosition();
-	velocity = velocity.Normalize();
-	velocity *= kBulletSpeed;
-
 	// 弾を生成し、初期化
 	std::unique_ptr<EnemyBullet>newBullet = std::make_unique<EnemyBullet>();
-	newBullet->Initialize(model_, GetWorldPosition(), velocity);
+	newBullet->Initialize(model_, GetWorldPosition());
 
 	// 弾にも自キャラの情報を共有
 	newBullet->SetPlayer(player_);
 
 	// 弾を登録する
-	bullets_.push_back(std::move(newBullet));
+	gameScene_->AddEnemyBullet(std::move(newBullet));
 }
 
 void Enemy::FireAndReset() {

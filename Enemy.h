@@ -11,6 +11,7 @@
 
 // 前方宣言
 class EnemyBullet;
+class GameScene;
 class BaseEnemyState;
 class Player;
 
@@ -31,7 +32,7 @@ public:
 	/// <param name="model">モデル</param>
 	/// <param name="position">初期座標</param>
 	/// <param name="velocity">速度</param>
-	void Initialize(Model* model, const Vector3& position, const Vector3& velocity);
+	void Initialize(Model* model, const Vector3& position, const Vector3& velocity, GameScene* gameScene);
 
 	/// <summary>
 	/// 更新
@@ -87,12 +88,17 @@ public:
 	/// <summary>
 	/// 衝突を検出したら呼び出されるコールバック関数
 	/// </summary>
-	void OnCollision(){};
+	void OnCollision() { isDead_ = true; };
 
 	/// <summary>
-	/// 弾リストを取得
+	/// 弾の寿命が尽きたかの判定
 	/// </summary>
-	std::list<std::unique_ptr<EnemyBullet>>& GetBullets() { return bullets_; }
+	inline bool IsDead() const { return isDead_; }
+
+	/// <summary>
+	/// ゲームシーンのポインタを共有する
+	/// </summary>
+	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
 
 private:
 	// ワールド変換データ
@@ -102,8 +108,9 @@ private:
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0u;
 
-	// 弾
-	std::list<std::unique_ptr<EnemyBullet>> bullets_;
+	// ゲームシーン
+	GameScene* gameScene_ = nullptr;
+
 	// 発射タイマー
 	int32_t fireTimer_ = 0;
 	// 時限発動のリスト
@@ -113,6 +120,8 @@ private:
 	BaseEnemyState* state_ = nullptr;
 	// 行動が変わっていないか
 	bool isChangeState_ = false;
+	// デスフラグ
+	bool isDead_ = false;
 
 	// 速度
 	Vector3 velocity_;

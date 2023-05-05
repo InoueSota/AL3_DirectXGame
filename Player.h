@@ -2,9 +2,10 @@
 #include "Model.h"
 #include "WorldTransform.h"
 #include "ViewProjection.h"
-#include <cassert>
 #include "Input.h"
+#include <cassert>
 #include <list>
+#include "Sprite.h"
 
 
 
@@ -21,18 +22,23 @@ public:
 	/// </summary>
 	/// <param name="model">モデル</param>
 	/// <param name="textureHandle">テクスチャハンドル</param>
-	void Initialize(Model* model, uint32_t textureHandle);
+	void Initialize(Model* model, uint32_t textureHandle, uint32_t reticleTextureHandle);
 
 	/// <summary>
 	/// 更新
 	/// </summary>
-	void Update();
+	void Update(const ViewProjection& viewProjection);
 
 	/// <summary>
 	/// 描画
 	/// </summary>
 	/// <param name="viewProjection">ビュープロジェクション（参照渡し）</param>
 	void Draw(const ViewProjection& viewProjection);
+
+	/// <summary>
+	/// UI描画
+	/// </summary>
+	void DrawUI();
 
 	/// <summary>
 	/// 旋回
@@ -75,6 +81,11 @@ private:
 
 	// キーボード入力
 	Input* input_ = nullptr;
+
+	// 3Dレティクル用ワールドトランスフォーム
+	WorldTransform worldTransform3DReticle_;
+	// 2Dレティクル用スプライト
+	Sprite* sprite2DReticle_ = nullptr;
 
 	// 弾
 	std::list<std::unique_ptr<PlayerBullet>> bullets_;

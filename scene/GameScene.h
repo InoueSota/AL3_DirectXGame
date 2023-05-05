@@ -10,9 +10,12 @@
 #include "WorldTransform.h"
 #include "RailCamera.h"
 #include "Player.h"
+#include "PlayerBullet.h"
 #include "Enemy.h"
+#include "EnemyBullet.h"
 #include "Skydome.h"
 #include "DebugCamera.h"
+#include <sstream>
 
 /// <summary>
 /// ゲームシーン
@@ -38,7 +41,7 @@ public: // メンバ関数
 	/// <summary>
 	/// 毎フレーム処理
 	/// </summary>
-	void Update();
+	void Update(GameScene* gameScene);
 
 	/// <summary>
 	/// 描画
@@ -50,12 +53,34 @@ public: // メンバ関数
 	/// </summary>
 	void ChackAllCollisions();
 
+	/// <summary>
+	/// 敵を発生させる
+	/// </summary>
+	void MakeEnemy(const Vector3& position, GameScene* gameScene);
+
+	/// <summary>
+	/// 敵弾を追加する
+	/// </summary>
+	/// <param name="enemyBullet">敵弾</param>
+	void AddEnemyBullet(std::unique_ptr<EnemyBullet> enemyBullet);
+
+	/// <summary>
+	/// 敵発生データの読み込み
+	/// </summary>
+	void LoadEnemyPopData();
+
+	/// <summary>
+	/// 敵発生コマンドの更新
+	/// </summary>
+	void UpdateEnemyPopCommands(GameScene* gameScene);
+
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
 	Audio* audio_ = nullptr;
 
 	// テクスチャハンドル
+	uint32_t reticleTextureHandle_ = 0;
 	uint32_t textureHandle_ = 0;
 	// 3Dモデルデータ
 	Model* model_ = nullptr;
@@ -75,7 +100,12 @@ private: // メンバ変数
 	// 自キャラ
 	Player* player_ = nullptr;
 	// 敵キャラ
-	Enemy* enemy_ = nullptr;
+	std::list<std::unique_ptr<Enemy>> enemy_;
+	std::list<std::unique_ptr<EnemyBullet>> bullets_;
+	// 敵発生コマンド
+	std::stringstream enemyPopCommands;
+	bool isWait_ = false;
+	int32_t interval_;
 	
 	// デバッグカメラ有効
 	bool isDebugCameraActive = false;

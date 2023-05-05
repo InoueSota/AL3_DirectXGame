@@ -6,7 +6,7 @@
 EnemyBullet::EnemyBullet() : isDead_(false) {}
 EnemyBullet::~EnemyBullet() {}
 
-void EnemyBullet::Initialize(Model* model, const Vector3& position, const Vector3& velocity) {
+void EnemyBullet::Initialize(Model* model, const Vector3& position) {
 
 	// NULLポインタチェック
 	assert(model);
@@ -25,8 +25,6 @@ void EnemyBullet::Initialize(Model* model, const Vector3& position, const Vector
 	//worldTransform_.scale_.y = 0.5f;
 	//worldTransform_.scale_.z = 3.0f;
 
-	// 引数で受け取った速度をメンバ変数に代入
-	velocity_ = velocity;
 }
 
 void EnemyBullet::Update() {
@@ -64,5 +62,3 @@ void EnemyBullet::Draw(const ViewProjection& viewProjection) {
 	// 3Dモデルを描画
 	model_->Draw(worldTransform_, viewProjection, textureHandle_);
 }
-
-void EnemyBullet::OnCollision() { isDead_ = true; }

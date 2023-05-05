@@ -24,7 +24,7 @@ void RailCamera::Initialize(const Vector3& position, const float radian) {
 void RailCamera::Update() {
 
 	// WorldTransformの座標の数値を加算したりする（移動）
-	worldTransform_.translation_.z -= 0.1f;
+	worldTransform_.translation_.z += 0.1f;
 	
 	// WorldTransformの角度の数値を加算したりする（回転）
 

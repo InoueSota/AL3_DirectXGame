@@ -1,12 +1,13 @@
 #pragma once
+
 #include "Enemy.h"
 #include "Model.h"
 #include "Vector3.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
 
-
 class Player;
+
 /// <summary>
 /// 敵キャラの弾
 /// </summary>
@@ -20,8 +21,7 @@ public:
 	/// </summary>
 	/// <param name="model">モデル</param>
 	/// <param name="position">初期座標</param>
-	/// <param name="velocity">速度</param>
-	void Initialize(Model* model, const Vector3& position, const Vector3& velocity);
+	void Initialize(Model* model, const Vector3& position);
 
 	/// <summary>
 	/// 更新
@@ -52,7 +52,7 @@ public:
 	/// <summary>
 	/// 衝突を検出したら呼び出されるコールバック関数
 	/// </summary>
-	void OnCollision();
+	void OnCollision() { isDead_ = true; };
 
 private:
 	// ワールド変換データ
