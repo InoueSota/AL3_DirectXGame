@@ -71,6 +71,11 @@ public:
 	/// <param name="parent">親となるWorldTransform</param>
 	void SetParent(const WorldTransform* parent);
 
+	/// <summary>
+	/// マウスカーソルを利用するレティクル
+	/// </summary>
+	void MouseCursorReticle(const ViewProjection& viewProjection);
+
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;

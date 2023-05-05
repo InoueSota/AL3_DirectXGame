@@ -6,7 +6,6 @@
 
 
 GameScene::GameScene() {}
-
 GameScene::~GameScene() {
 
 	// 3Dモデルデータの解放
