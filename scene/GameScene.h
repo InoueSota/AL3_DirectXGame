@@ -16,6 +16,7 @@
 #include "Skydome.h"
 #include "DebugCamera.h"
 #include <sstream>
+#include "Collider.h"
 
 /// <summary>
 /// ゲームシーン
@@ -98,7 +99,7 @@ private: // メンバ変数
 	// 天球
 	std::unique_ptr<Skydome> skyDome_;
 	// 自キャラ
-	Player* player_ = nullptr;
+	std::unique_ptr<Player> player_;
 	// 敵キャラ
 	std::list<std::unique_ptr<Enemy>> enemy_;
 	std::list<std::unique_ptr<EnemyBullet>> bullets_;
@@ -106,6 +107,13 @@ private: // メンバ変数
 	std::stringstream enemyPopCommands;
 	bool isWait_ = false;
 	int32_t interval_;
+
+	/// <summary>
+	/// コライダー2つの衝突判定と応用
+	/// </summary>
+	/// <param name="colliderA">コライダーA</param>
+	/// <param name="colliderB">コライダーB</param>
+	void CheckCollisionPair(std::unique_ptr<Collider> colliderA, std::unique_ptr<Collider> colliderB);
 	
 	// デバッグカメラ有効
 	bool isDebugCameraActive = false;

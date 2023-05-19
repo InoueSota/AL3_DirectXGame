@@ -42,6 +42,7 @@ void Enemy::Initialize(
 	// 移動初期化関数
 	MoveInitialize();
 
+	player_ = std::make_unique<Player>();
 }
 
 void Enemy::Update() {
@@ -100,7 +101,7 @@ void Enemy::Fire() {
 	newBullet->Initialize(model_, GetWorldPosition());
 
 	// 弾にも自キャラの情報を共有
-	newBullet->SetPlayer(player_);
+	newBullet->SetPlayer(std::move(player_));
 
 	// 弾を登録する
 	gameScene_->AddEnemyBullet(std::move(newBullet));

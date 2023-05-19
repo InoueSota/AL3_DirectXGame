@@ -5,6 +5,7 @@
 #include "Vector3.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
+#include "Collider.h"
 
 class Player;
 
@@ -47,12 +48,17 @@ public:
 	/// <summary>
 	/// プレイヤーのポインタを共有する
 	/// </summary>
-	void SetPlayer(Player* player) { player_ = player; }
+	void SetPlayer(std::unique_ptr<Player> player) { player_ = std::move(player); }
 
 	/// <summary>
 	/// 衝突を検出したら呼び出されるコールバック関数
 	/// </summary>
 	void OnCollision() { isDead_ = true; };
+
+	///// <summary>
+	///// 衝突時に呼ばれる関数
+	///// </summary>
+	//void OnCollision() override;
 
 private:
 	// ワールド変換データ
@@ -73,6 +79,6 @@ private:
 	bool isDead_ = false;
 
 	// 自キャラのポインタ
-	Player* player_ = nullptr;
+	std::unique_ptr<Player> player_;
 };
 

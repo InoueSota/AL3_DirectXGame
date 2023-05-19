@@ -6,12 +6,12 @@
 #include <cassert>
 #include <list>
 #include "Sprite.h"
-
+#include "Collider.h"
 
 
 class PlayerBullet;
 
-class Player {
+class Player : public Collider {
 
 public:
 	Player();
@@ -75,6 +75,11 @@ public:
 	/// マウスカーソルを利用するレティクル
 	/// </summary>
 	void MouseCursorReticle(const ViewProjection& viewProjection);
+
+	///// <summary>
+	///// 衝突時に呼ばれる関数
+	///// </summary>
+	//void OnCollision() override;
 
 private:
 	// ワールド変換データ

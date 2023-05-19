@@ -1,6 +1,6 @@
 #include "BaseEnemyState.h"
 #include "Enemy.h"
-
+#include "Player.h"
 
 
 void EnemyStateApproach::Update(Enemy* pEnemy) {

@@ -15,8 +15,6 @@ GameScene::~GameScene() {
 	// デバッグカメラの解放
 	delete debugCamera_;
 
-	// 自キャラの解放
-	delete player_;
 }
 
 void GameScene::Initialize() {
@@ -44,7 +42,7 @@ void GameScene::Initialize() {
 	skyDome_->Initialize(modelSkydome_);
 
 	// 自キャラの初期化
-	player_ = new Player();
+	player_ = std::make_unique<Player>();
 	player_->SetParent(&railCamera_->GetWorldTransform());
 	player_->Initialize(model_, textureHandle_, reticleTextureHandle_);
 
@@ -200,6 +198,7 @@ void GameScene::ChackAllCollisions() {
 
 	// 自キャラと敵弾全ての当たり判定
 	for (std::list<std::unique_ptr<EnemyBullet>>::iterator bullet = bullets_.begin(); bullet != bullets_.end(); ++bullet) {
+		//CheckCollisionPair(std::move(player_), bullets_. std::move(bullet));
 		// 敵弾の座標
 		posB = (*bullet)->GetWorldPosition();
 
@@ -272,7 +271,7 @@ void GameScene::MakeEnemy(const Vector3& position, GameScene* gameScene) {
 	// 敵キャラの生成
 	std::unique_ptr<Enemy> newEnemy = std::make_unique<Enemy>();
 	// 敵キャラに自キャラのアドレスを渡す
-	newEnemy->SetPlayer(player_);
+	newEnemy->SetPlayer(std::move(player_));
 	// 敵キャラの初期化
 	newEnemy->Initialize(model_, position, {0.0f, 0.0f, 0.0f}, gameScene);
 	// 敵キャラを登録する
@@ -357,5 +356,20 @@ void GameScene::UpdateEnemyPopCommands(GameScene* gameScene) {
 			// コマンドループを抜ける
 			break;
 		}
+	}
+}
+
+void GameScene::CheckCollisionPair(std::unique_ptr<Collider> colliderA, std::unique_ptr<Collider> colliderB) {
+
+	Vector3 positionA = colliderA->GetPosition();
+	Vector3 positionB = colliderB->GetPosition();
+
+	// 球と球の交差判定
+	float direction = (std::powf(positionA.x - positionB.x, 2.0f) + std::powf(positionA.y - positionB.y, 2.0f) + std::powf(positionA.z - positionB.z, 2.0f));
+
+	// 球と球の交差判定
+	if (direction <= std::powf(colliderA->GetRadius(), colliderA->GetRadius())) {
+		colliderA->OnCollision();
+		colliderB->OnCollision();
 	}
 }

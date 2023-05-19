@@ -20,11 +20,8 @@ void EnemyBullet::Initialize(Model* model, const Vector3& position) {
 
 	// 引数で受け取った初期座標をセット
 	worldTransform_.translation_ = position;
-	// Z方向に伸びた形状
-	//worldTransform_.scale_.x = 0.5f;
-	//worldTransform_.scale_.y = 0.5f;
-	//worldTransform_.scale_.z = 3.0f;
 
+	player_ = std::make_unique<Player>();
 }
 
 void EnemyBullet::Update() {

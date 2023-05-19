@@ -171,15 +171,15 @@ void Player::Rotate() {
 
 void Player::Attack() {
 
-	XINPUT_STATE joyState;
+	//XINPUT_STATE joyState;
 
-	// ゲームパッド未接続なら何もせず抜ける
-	if (!Input::GetInstance()->GetJoystickState(0, joyState)) {
-		return;
-	}
+	//// ゲームパッド未接続なら何もせず抜ける
+	//if (!Input::GetInstance()->GetJoystickState(0, joyState)) {
+	//	return;
+	//}
 
 	// Rトリガーを押していたら
-	if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
+	//if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
 		// 弾の速度
 		const float kBulletSpeed = 1.5f;
 		Vector3 velocity = { worldTransform3DReticle_.matWorld_.GetTranslate() - worldTransform_.matWorld_.GetTranslate()};
@@ -194,7 +194,7 @@ void Player::Attack() {
 
 		// 弾を登録する
 		bullets_.push_back(std::move(newBullet));
-	}
+	//}
 
 }
 
@@ -207,7 +207,7 @@ void Player::SetParent(const WorldTransform* parent) {
 
 void Player::MouseCursorReticle(const ViewProjection& viewProjection) {
 
-	/*
+	
 	// マウスカーソルのスクリーン座標からワールド座標を取得して3Dレティクル配置
 	POINT mousePosition;
 	// マウス座標（スクリーン座標）を取得する
@@ -216,20 +216,20 @@ void Player::MouseCursorReticle(const ViewProjection& viewProjection) {
 	// クライアントエリア座標に変換する
 	HWND hwnd = WinApp::GetInstance()->GetHwnd();
 	ScreenToClient(hwnd, &mousePosition);
-	*/
+	
 
-	// スプライトの現在座標を取得
-	Vector2 spritePosition = sprite2DReticle_->GetPosition();
+	//// スプライトの現在座標を取得
+	//Vector2 spritePosition = sprite2DReticle_->GetPosition();
 
-	XINPUT_STATE joyState;
+	//XINPUT_STATE joyState;
 
-	// ジョイスティック状態取得
-	if (Input::GetInstance()->GetJoystickState(0,joyState)) {
-		spritePosition.x += (float)joyState.Gamepad.sThumbRX / SHRT_MAX * 5.0f;
-		spritePosition.y -= (float)joyState.Gamepad.sThumbRY / SHRT_MAX * 5.0f;
-		// スプライトの座標変更を反映
-		sprite2DReticle_->SetPosition(spritePosition);
-	}
+	//// ジョイスティック状態取得
+	//if (Input::GetInstance()->GetJoystickState(0,joyState)) {
+	//	spritePosition.x += (float)joyState.Gamepad.sThumbRX / SHRT_MAX * 5.0f;
+	//	spritePosition.y -= (float)joyState.Gamepad.sThumbRY / SHRT_MAX * 5.0f;
+	//	// スプライトの座標変更を反映
+	//	sprite2DReticle_->SetPosition(spritePosition);
+	//}
 
 	// スプライトのレティクルに座標設定
 	//sprite2DReticle_->SetPosition(Vector2((float)spritePosition.x, (float)spritePosition.y));
@@ -241,8 +241,8 @@ void Player::MouseCursorReticle(const ViewProjection& viewProjection) {
 	Matrix4x4 matInverseVPV = Matrix4x4::Inverse(matVPV);
 
 	// スクリーン座標
-	Vector3 posNear = Vector3((float)spritePosition.x, (float)spritePosition.y, 0.0f);
-	Vector3 posFar = Vector3((float)spritePosition.x, (float)spritePosition.y, 1.0f);
+	Vector3 posNear = Vector3((float)mousePosition.x, (float)mousePosition.y, 0.0f);
+	Vector3 posFar = Vector3((float)mousePosition.x, (float)mousePosition.y, 1.0f);
 
 	// スクリーン座標系からワールド座標系へ
 	posNear = Vector3::Transform(posNear, matInverseVPV);

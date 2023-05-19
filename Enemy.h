@@ -7,6 +7,7 @@
 #include <list>
 #include <functional>
 #include <memory>
+#include "Collider.h"
 
 
 // 前方宣言
@@ -18,7 +19,7 @@ class Player;
 /// <summary>
 /// 敵
 /// </summary>
-class Enemy {
+class Enemy : public Collider {
 public:
 	Enemy();
 	~Enemy();
@@ -78,7 +79,7 @@ public:
 	/// <summary>
 	/// プレイヤーのポインタを共有する
 	/// </summary>
-	void SetPlayer(Player* player) { player_ = player; }
+	void SetPlayer(std::unique_ptr<Player> player) { player_ = std::move(player); }
 
 	/// <summary>
 	/// ワールド座標を取得
@@ -99,6 +100,11 @@ public:
 	/// ゲームシーンのポインタを共有する
 	/// </summary>
 	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
+
+	/// <summary>
+	/// 衝突時に呼ばれる関数
+	/// </summary>
+	//void OnCollision() override;
 
 private:
 	// ワールド変換データ
@@ -127,5 +133,5 @@ private:
 	Vector3 velocity_;
 
 	// 自キャラ
-	Player* player_ = nullptr;
+	std::unique_ptr<Player> player_;
 };

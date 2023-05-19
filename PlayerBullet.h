@@ -4,13 +4,14 @@
 #include "Vector3.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
+#include "Collider.h"
 
 
 
 /// <summary>
 /// 自キャラの弾
 /// </summary>
-class PlayerBullet : public  Player {
+class PlayerBullet : public Player {
 public:
 	PlayerBullet();
 	~PlayerBullet();
@@ -48,6 +49,11 @@ public:
 	/// 衝突を検出したら呼び出されるコールバック関数
 	/// </summary>
 	void OnCollision();
+
+	///// <summary>
+	///// 衝突時に呼ばれる関数
+	///// </summary>
+	//void OnCollision() override;
 
 private:
 	// ワールド変換データ
