@@ -188,37 +188,40 @@ void GameScene::ChackAllCollisions() {
 	// 自弾リストの取得
 	const std::list<std::unique_ptr<PlayerBullet>>& playerBullets = player_->GetBullets();
 
-	#pragma region 自キャラと敵弾の当たり判定
-
-	 //自キャラと敵弾全ての当たり判定
-	for (auto& enemybullet : bullets_) {
-		CheckCollisionPair(player_.get(), enemybullet.get());
-	}
-	#pragma endregion
-
-	#pragma region 自弾と敵キャラの当たり判定
-
-	// 敵キャラ
-	for (auto& enemy : enemy_) {
-
-		// 自弾
-		for (auto& playerbullet : playerBullets) {
-			CheckCollisionPair(enemy.get(), playerbullet.get());
-		}
-	}
-	#pragma endregion
-
-	#pragma region 自弾と敵弾の当たり判定
-
-	// 自弾
+	// コライダー
+	std::list<Collider*> colliders_;
+	// コライダーをリストに登録
+	colliders_.push_back(player_.get());
 	for (auto& playerbullet : playerBullets) {
+		colliders_.push_back(playerbullet.get());
+	}
+	for (auto& enemy : enemy_) {
+		colliders_.push_back(enemy.get());
+	}
+	for (auto& enemybullet : bullets_) {
+		colliders_.push_back(enemybullet.get());
+	}
 
-		// 敵弾
-		for (auto& enemybullet : bullets_) {
-			CheckCollisionPair(playerbullet.get(), enemybullet.get());
+	// リスト内のペアを総当たり
+	std::list<Collider*>::iterator itrA = colliders_.begin();
+	for (; itrA != colliders_.end(); ++itrA) {
+
+		// イテレータBはイテレータAの次の要素から回す（重複判定を回避）
+		std::list<Collider*>::iterator itrB = itrA;
+		itrB++;
+
+		for (; itrB != colliders_.end(); ++itrB) {
+			// 衝突フィルタリング
+			if (!((*itrA)->GetCollisionAttribute() & (*itrB)->GetCollisionMask()) ||
+			    !((*itrB)->GetCollisionAttribute() & (*itrA)->GetCollisionMask())) {
+				continue;
+			}
+
+			// ペアの当たり判定
+			CheckCollisionPair((*itrA), (*itrB));
 		}
 	}
-	#pragma endregion
+
 }
 
 void GameScene::MakeEnemy(const Vector3& position, GameScene* gameScene) {

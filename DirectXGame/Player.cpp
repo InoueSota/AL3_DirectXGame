@@ -2,6 +2,7 @@
 #include "Matrix4x4.h"
 #include "ImGuiManager.h"
 #include "PlayerBullet.h"
+#include "CollisionConfig.h"
 
 
 
@@ -32,6 +33,11 @@ void Player::Initialize(Model* model, uint32_t textureHandle, uint32_t reticleTe
 	worldTransform3DReticle_.Initialize();
 	// スプライト生成
 	sprite2DReticle_ = Sprite::Create(reticleTextureHandle, Vector2((float)WinApp::kWindowWidth / 2.0f, (float)WinApp::kWindowHeight / 2.0f), {1, 1, 1, 1}, {0.5f, 0.5f});
+
+	// 衝突属性を設定
+	SetCollisionAttribute(kCollisionAttributePlayer);
+	// 衝突対象を自分の属性以外に設定
+	SetCollisionMask(~kCollisionAttributePlayer);
 }
 
 void Player::Update(const ViewProjection& viewProjection) {

@@ -4,6 +4,7 @@
 #include "BaseEnemyState.h"
 #include "Player.h"
 #include "GameScene.h"
+#include "CollisionConfig.h"
 
 
 Enemy::Enemy() {
@@ -41,6 +42,11 @@ void Enemy::Initialize(
 
 	// 移動初期化関数
 	MoveInitialize();
+
+	// 衝突属性を設定
+	SetCollisionAttribute(kCollisionAttributeEnemy);
+	// 衝突対象を自分の属性以外に設定
+	SetCollisionMask(~kCollisionAttributeEnemy);
 }
 
 void Enemy::Update() {
