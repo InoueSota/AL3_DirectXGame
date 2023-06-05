@@ -20,8 +20,6 @@ void EnemyBullet::Initialize(Model* model, const Vector3& position) {
 
 	// 引数で受け取った初期座標をセット
 	worldTransform_.translation_ = position;
-
-	player_ = std::make_unique<Player>();
 }
 
 void EnemyBullet::Update() {

@@ -113,7 +113,7 @@ private: // メンバ変数
 	/// </summary>
 	/// <param name="colliderA">コライダーA</param>
 	/// <param name="colliderB">コライダーB</param>
-	void CheckCollisionPair(std::unique_ptr<Collider> colliderA, std::unique_ptr<Collider> colliderB);
+	void CheckCollisionPair(Collider* colliderA, Collider* colliderB);
 	
 	// デバッグカメラ有効
 	bool isDebugCameraActive = false;

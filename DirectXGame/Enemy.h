@@ -79,17 +79,12 @@ public:
 	/// <summary>
 	/// プレイヤーのポインタを共有する
 	/// </summary>
-	void SetPlayer(std::unique_ptr<Player> player) { player_ = std::move(player); }
+	void SetPlayer(Player* player) { player_ = player; }
 
 	/// <summary>
 	/// ワールド座標を取得
 	/// </summary>
-	const Vector3& GetWorldPosition() const { return worldTransform_.translation_; }
-
-	/// <summary>
-	/// 衝突を検出したら呼び出されるコールバック関数
-	/// </summary>
-	void OnCollision() { isDead_ = true; };
+	const Vector3& GetWorldPosition() const override { return worldTransform_.translation_; }
 
 	/// <summary>
 	/// 弾の寿命が尽きたかの判定
@@ -104,7 +99,7 @@ public:
 	/// <summary>
 	/// 衝突時に呼ばれる関数
 	/// </summary>
-	//void OnCollision() override;
+	void OnCollision() override { isDead_ = true; };
 
 private:
 	// ワールド変換データ
@@ -133,5 +128,5 @@ private:
 	Vector3 velocity_;
 
 	// 自キャラ
-	std::unique_ptr<Player> player_;
+	Player* player_;
 };

@@ -13,7 +13,7 @@ public:
 	/// <summary>
 	/// 座標を取得
 	/// </summary>
-	Vector3 GetPosition() { return worldTransform_.translation_; }
+	virtual const Vector3& GetWorldPosition() const { return worldTransform_.translation_; }
 	
 	/// <summary>
 	/// 半径を取得

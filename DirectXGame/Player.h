@@ -56,9 +56,9 @@ public:
 	Vector3 GetWorldPosition() { return worldTransform_.matWorld_.GetTranslate(); }
 
 	/// <summary>
-	/// 衝突を検出したら呼び出されるコールバック関数
+	/// ワールド座標を取得
 	/// </summary>
-	void OnCollision(){};
+	const Vector3& GetWorldPosition() const override { return worldTransform_.translation_; }
 
 	/// <summary>
 	/// 弾リストを取得
@@ -79,7 +79,7 @@ public:
 	///// <summary>
 	///// 衝突時に呼ばれる関数
 	///// </summary>
-	//void OnCollision() override;
+	void OnCollision() override {};
 
 private:
 	// ワールド変換データ

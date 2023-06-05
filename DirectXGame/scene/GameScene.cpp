@@ -185,83 +185,37 @@ void GameScene::Draw() {
 
 void GameScene::ChackAllCollisions() {
 
-	// 判定対象AとBの座標
-	Vector3 posA, posB;
-
 	// 自弾リストの取得
-	std::list<std::unique_ptr<PlayerBullet>>& playerBullets = player_->GetBullets();
+	const std::list<std::unique_ptr<PlayerBullet>>& playerBullets = player_->GetBullets();
 
 	#pragma region 自キャラと敵弾の当たり判定
 
-	// 自キャラの座標
-	posA = player_->GetWorldPosition();
-
-	// 自キャラと敵弾全ての当たり判定
-	for (std::list<std::unique_ptr<EnemyBullet>>::iterator bullet = bullets_.begin(); bullet != bullets_.end(); ++bullet) {
-		//CheckCollisionPair(std::move(player_), bullets_. std::move(bullet));
-		// 敵弾の座標
-		posB = (*bullet)->GetWorldPosition();
-
-		// 座標AとBの距離を求める
-		float direction = (std::powf(posA.x - posB.x, 2.0f) + std::powf(posA.y - posB.y, 2.0f) + std::powf(posA.z - posB.z, 2.0f));
-
-		// 球と球の交差判定
-		if (direction <= std::powf(2.0f, 2.0f)) {
-			// 自キャラの衝突時コールバックを呼び出す
-			player_->OnCollision();
-			// 敵弾の衝突時コールバックを呼び出す
-			(*bullet)->OnCollision();
-		}
+	 //自キャラと敵弾全ての当たり判定
+	for (auto& enemybullet : bullets_) {
+		CheckCollisionPair(player_.get(), enemybullet.get());
 	}
 	#pragma endregion
 
 	#pragma region 自弾と敵キャラの当たり判定
 
-	// 敵キャラの座標
-	for (std::list<std::unique_ptr<Enemy>>::iterator enemy = enemy_.begin(); enemy != enemy_.end(); ++enemy) {
-		// 敵キャラの座標
-		posA = (*enemy)->GetWorldPosition();
+	// 敵キャラ
+	for (auto& enemy : enemy_) {
 
-		// 自キャラと自弾全ての当たり判定
-		for (std::list<std::unique_ptr<PlayerBullet>>::iterator bullet = playerBullets.begin(); bullet != playerBullets.end(); ++bullet) {
-			// 自弾の座標
-			posB = (*bullet)->GetWorldPosition();
-
-			// 座標AとBの距離を求める
-			float direction = (std::powf(posA.x - posB.x, 2.0f) + std::powf(posA.y - posB.y, 2.0f) + std::powf(posA.z - posB.z, 2.0f));
-
-			// 球と球の交差判定
-			if (direction <= std::powf(2.0f, 2.0f)) {
-				// 敵キャラの衝突時コールバックを呼び出す
-				(*enemy)->OnCollision();
-				// 自弾の衝突時コールバックを呼び出す
-				(*bullet)->OnCollision();
-			}
+		// 自弾
+		for (auto& playerbullet : playerBullets) {
+			CheckCollisionPair(enemy.get(), playerbullet.get());
 		}
 	}
 	#pragma endregion
 
 	#pragma region 自弾と敵弾の当たり判定
 
-	// 自弾の座標
-	for (std::list<std::unique_ptr<PlayerBullet>>::iterator playerbullet = playerBullets.begin(); playerbullet != playerBullets.end(); ++playerbullet) {
-		posA = (*playerbullet)->GetWorldPosition();
+	// 自弾
+	for (auto& playerbullet : playerBullets) {
 
-		// 自弾と敵弾全ての当たり判定
-		for (std::list<std::unique_ptr<EnemyBullet>>::iterator enemybullet = bullets_.begin(); enemybullet != bullets_.end(); ++enemybullet) {
-			// 自弾の座標
-			posB = (*enemybullet)->GetWorldPosition();
-
-			// 座標AとBの距離を求める
-			float direction = (std::powf(posA.x - posB.x, 2.0f) + std::powf(posA.y - posB.y, 2.0f) + std::powf(posA.z - posB.z, 2.0f));
-
-			// 球と球の交差判定
-			if (direction <= std::powf(2.0f, 2.0f)) {
-				// 敵キャラの衝突時コールバックを呼び出す
-				(*playerbullet)->OnCollision();
-				// 自弾の衝突時コールバックを呼び出す
-				(*enemybullet)->OnCollision();
-			}
+		// 敵弾
+		for (auto& enemybullet : bullets_) {
+			CheckCollisionPair(playerbullet.get(), enemybullet.get());
 		}
 	}
 	#pragma endregion
@@ -271,7 +225,7 @@ void GameScene::MakeEnemy(const Vector3& position, GameScene* gameScene) {
 	// 敵キャラの生成
 	std::unique_ptr<Enemy> newEnemy = std::make_unique<Enemy>();
 	// 敵キャラに自キャラのアドレスを渡す
-	newEnemy->SetPlayer(std::move(player_));
+	newEnemy->SetPlayer(player_.get());
 	// 敵キャラの初期化
 	newEnemy->Initialize(model_, position, {0.0f, 0.0f, 0.0f}, gameScene);
 	// 敵キャラを登録する
@@ -359,16 +313,16 @@ void GameScene::UpdateEnemyPopCommands(GameScene* gameScene) {
 	}
 }
 
-void GameScene::CheckCollisionPair(std::unique_ptr<Collider> colliderA, std::unique_ptr<Collider> colliderB) {
+void GameScene::CheckCollisionPair(Collider* colliderA, Collider* colliderB) {
 
-	Vector3 positionA = colliderA->GetPosition();
-	Vector3 positionB = colliderB->GetPosition();
+	Vector3 positionA = colliderA->GetWorldPosition();
+	Vector3 positionB = colliderB->GetWorldPosition();
 
 	// 球と球の交差判定
 	float direction = (std::powf(positionA.x - positionB.x, 2.0f) + std::powf(positionA.y - positionB.y, 2.0f) + std::powf(positionA.z - positionB.z, 2.0f));
 
 	// 球と球の交差判定
-	if (direction <= std::powf(colliderA->GetRadius(), colliderA->GetRadius())) {
+	if (direction <= std::powf(colliderA->GetRadius() + colliderB->GetRadius(), 2.0f)) {
 		colliderA->OnCollision();
 		colliderB->OnCollision();
 	}
