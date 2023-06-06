@@ -15,6 +15,8 @@ GameScene::~GameScene() {
 	// デバッグカメラの解放
 	delete debugCamera_;
 
+	// 衝突マネージャを解放
+	delete colliderManager_;
 }
 
 void GameScene::Initialize() {
@@ -56,6 +58,9 @@ void GameScene::Initialize() {
 	AxisIndicator::GetInstance()->SetVisible(true);
 	// 軸方向表示が参照するビュープロジェクションを指定する（アドレス渡し）
 	AxisIndicator::GetInstance()->SetTargetViewProjection(&viewProjection_);
+
+	// 衝突マネージャの生成
+	colliderManager_ = new ColliderManager();
 }
 
 void GameScene::Update(GameScene* gameScene) {
@@ -188,39 +193,22 @@ void GameScene::ChackAllCollisions() {
 	// 自弾リストの取得
 	const std::list<std::unique_ptr<PlayerBullet>>& playerBullets = player_->GetBullets();
 
-	// コライダー
-	std::list<Collider*> colliders_;
+	// コライダーの解放
+	colliderManager_->ClearColliderList();
+
 	// コライダーをリストに登録
-	colliders_.push_back(player_.get());
+	colliderManager_->GetCollider(player_.get());
 	for (auto& playerbullet : playerBullets) {
-		colliders_.push_back(playerbullet.get());
+		colliderManager_->GetCollider(playerbullet.get());
 	}
 	for (auto& enemy : enemy_) {
-		colliders_.push_back(enemy.get());
+		colliderManager_->GetCollider(enemy.get());
 	}
 	for (auto& enemybullet : bullets_) {
-		colliders_.push_back(enemybullet.get());
+		colliderManager_->GetCollider(enemybullet.get());
 	}
 
-	// リスト内のペアを総当たり
-	std::list<Collider*>::iterator itrA = colliders_.begin();
-	for (; itrA != colliders_.end(); ++itrA) {
-
-		// イテレータBはイテレータAの次の要素から回す（重複判定を回避）
-		std::list<Collider*>::iterator itrB = itrA;
-		itrB++;
-
-		for (; itrB != colliders_.end(); ++itrB) {
-			// 衝突フィルタリング
-			if (!((*itrA)->GetCollisionAttribute() & (*itrB)->GetCollisionMask()) ||
-			    !((*itrB)->GetCollisionAttribute() & (*itrA)->GetCollisionMask())) {
-				continue;
-			}
-
-			// ペアの当たり判定
-			CheckCollisionPair((*itrA), (*itrB));
-		}
-	}
+	colliderManager_->AllCollisions();
 
 }
 
@@ -316,17 +304,3 @@ void GameScene::UpdateEnemyPopCommands(GameScene* gameScene) {
 	}
 }
 
-void GameScene::CheckCollisionPair(Collider* colliderA, Collider* colliderB) {
-
-	Vector3 positionA = colliderA->GetWorldPosition();
-	Vector3 positionB = colliderB->GetWorldPosition();
-
-	// 球と球の交差判定
-	float direction = (std::powf(positionA.x - positionB.x, 2.0f) + std::powf(positionA.y - positionB.y, 2.0f) + std::powf(positionA.z - positionB.z, 2.0f));
-
-	// 球と球の交差判定
-	if (direction <= std::powf(colliderA->GetRadius() + colliderB->GetRadius(), 2.0f)) {
-		colliderA->OnCollision();
-		colliderB->OnCollision();
-	}
-}

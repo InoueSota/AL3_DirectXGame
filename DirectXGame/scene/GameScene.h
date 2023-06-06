@@ -17,6 +17,7 @@
 #include "DebugCamera.h"
 #include <sstream>
 #include "Collider.h"
+#include "ColliderManager.h"
 
 /// <summary>
 /// ゲームシーン
@@ -108,12 +109,8 @@ private: // メンバ変数
 	bool isWait_ = false;
 	int32_t interval_;
 
-	/// <summary>
-	/// コライダー2つの衝突判定と応用
-	/// </summary>
-	/// <param name="colliderA">コライダーA</param>
-	/// <param name="colliderB">コライダーB</param>
-	void CheckCollisionPair(Collider* colliderA, Collider* colliderB);
+	// 当たり判定
+	ColliderManager* colliderManager_;
 	
 	// デバッグカメラ有効
 	bool isDebugCameraActive = false;
