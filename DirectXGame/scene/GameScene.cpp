@@ -24,6 +24,7 @@ void GameScene::Initialize() {
 	dxCommon_ = DirectXCommon::GetInstance();
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
+	primitiveDrawer_ = PrimitiveDrawer::GetInstance();
 
 	// ファイル名を指定してテクスチャを読み込む
 	reticleTextureHandle_ = TextureManager::Load("reticle.png");
@@ -38,6 +39,14 @@ void GameScene::Initialize() {
 	// レールカメラの初期化
 	railCamera_ = std::make_unique<RailCamera>();
 	railCamera_->Initialize({0.0f, 0.0f, -50.0f}, 0.0f);
+	controlPoints_ = {
+	    {0,  0,  0},
+        {10, 10, 0},
+        {10, 15, 0},
+        {20, 15, 0},
+        {20,  0, 0},
+        {30,  0, 0},
+	};
 
 	// 天球の初期化
 	skyDome_ = std::make_unique<Skydome>();
@@ -167,6 +176,9 @@ void GameScene::Draw() {
 		}
 		(*it)->Draw(viewProjection_);
 	}
+
+	// 線描画
+	DrawCatmullRomSpline();
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
@@ -302,5 +314,43 @@ void GameScene::UpdateEnemyPopCommands(GameScene* gameScene) {
 			break;
 		}
 	}
+}
+
+void GameScene::DrawCatmullRomSpline() {
+	
+	// 線分で描画する用の頂点リスト
+	std::vector<Vector3> pointDrawing;
+	// 線分の数
+	const size_t segmentCount = 20;
+	// スプライン曲線の制御点分回す
+	if (controlPoints_.size() >= 4) {
+
+		for (size_t i = 0; i < controlPoints_.size(); i++) {
+
+			// 線分の数+1個分の頂点座標を計算
+			for (size_t j = 0; j < segmentCount + 1; j++) {
+				float t = 1.0f / segmentCount * j;
+				Vector3 pos;
+					
+				if (i > 0 && i < controlPoints_.size() - 2) {
+					pos = Vector3::CatmullRom(controlPoints_[i - 1], controlPoints_[i], controlPoints_[i + 1], controlPoints_[i + 2], t);
+				} 
+				else if (i == 0) {
+					pos = Vector3::CatmullRom(controlPoints_[i], controlPoints_[i], controlPoints_[i + 1], controlPoints_[i + 2], t);
+				} 
+				else if (i < controlPoints_.size() - 1) {
+					pos = Vector3::CatmullRom(controlPoints_[i - 1], controlPoints_[i], controlPoints_[i + 1], controlPoints_[i + 1], t);
+				}
+				// 描画用頂点リストに追加
+				pointDrawing.push_back(pos);
+			}
+		}
+	}
+
+	primitiveDrawer_->SetViewProjection(&viewProjection_);
+	for (size_t i = 0; i < pointDrawing.size() - 1; i++) {
+		primitiveDrawer_->DrawLine3d(pointDrawing[i], pointDrawing[i + 1], {1.0f, 1.0f, 1.0f, 1.0f});
+	}
+	
 }
 

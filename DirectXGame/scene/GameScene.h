@@ -1,5 +1,6 @@
 #pragma once
 
+#include "PrimitiveDrawer.h"
 #include "Audio.h"
 #include "DirectXCommon.h"
 #include "Input.h"
@@ -18,6 +19,7 @@
 #include <sstream>
 #include "Collider.h"
 #include "ColliderManager.h"
+#include <vector>
 
 /// <summary>
 /// ゲームシーン
@@ -76,6 +78,11 @@ public: // メンバ関数
 	/// </summary>
 	void UpdateEnemyPopCommands(GameScene* gameScene);
 
+	/// <summary>
+	/// 敵発生コマンドの更新
+	/// </summary>
+	void DrawCatmullRomSpline();
+
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -88,6 +95,9 @@ private: // メンバ変数
 	Model* model_ = nullptr;
 	Model* modelSkydome_ = nullptr;
 
+	// 線描画
+	PrimitiveDrawer* primitiveDrawer_ = nullptr;
+
 	// ビュープロジェクション
 	ViewProjection viewProjection_;
 
@@ -97,6 +107,8 @@ private: // メンバ変数
 
 	// レールカメラ
 	std::unique_ptr<RailCamera> railCamera_;
+	// スプライン曲線制御点（通過点）
+	std::vector<Vector3> controlPoints_;
 	// 天球
 	std::unique_ptr<Skydome> skyDome_;
 	// 自キャラ
@@ -107,10 +119,10 @@ private: // メンバ変数
 	// 敵発生コマンド
 	std::stringstream enemyPopCommands;
 	bool isWait_ = false;
-	int32_t interval_;
+	int32_t interval_ = 0;
 
 	// 当たり判定
-	ColliderManager* colliderManager_;
+	ColliderManager* colliderManager_ = nullptr;
 	
 	// デバッグカメラ有効
 	bool isDebugCameraActive = false;

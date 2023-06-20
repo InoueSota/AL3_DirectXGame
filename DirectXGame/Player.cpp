@@ -125,7 +125,7 @@ void Player::Update(const ViewProjection& viewProjection) {
 	// 自機のワールド行列の回転を反映
 	offset = Vector3::TransformNormal(offset, worldTransform_.matWorld_);
 	// ベクトルの長さを整える
-	offset = offset.Normalize() * kDistancePlayerTo3DReticle;
+	offset = offset.Normalize(offset) * kDistancePlayerTo3DReticle;
 	// 3Dレティクルの座標を設定
 	worldTransform3DReticle_.translation_ = offset + GetWorldPosition();
 	worldTransform3DReticle_.UpdateMatrix();
@@ -189,7 +189,7 @@ void Player::Attack() {
 		// 弾の速度
 		const float kBulletSpeed = 1.5f;
 		Vector3 velocity = { worldTransform3DReticle_.matWorld_.GetTranslate() - worldTransform_.matWorld_.GetTranslate()};
-		velocity = velocity.Normalize() * kBulletSpeed;
+	    velocity = velocity.Normalize(velocity) * kBulletSpeed;
 
 		// 速度ベクトルを目標の向きに合わせて回転させる
 		velocity = Vector3::TransformNormal(velocity, worldTransform_.matWorld_);
@@ -256,7 +256,7 @@ void Player::MouseCursorReticle(const ViewProjection& viewProjection) {
 
 	// マウスレイの方向
 	Vector3 mouseDirection = posFar - posNear;
-	mouseDirection = mouseDirection.Normalize();
+	mouseDirection = mouseDirection.Normalize(mouseDirection);
 	// カメラから照準オブジェクトの距離
 	const float kDistanceTestObject = 100.0f;
 	worldTransform3DReticle_.translation_ = posNear + (mouseDirection * kDistanceTestObject);

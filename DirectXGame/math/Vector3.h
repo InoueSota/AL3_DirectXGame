@@ -1,6 +1,7 @@
 #pragma once
 #include <assert.h>
 #include <cmath>
+#include <vector>
 
 struct Matrix4x4;
 
@@ -15,75 +16,101 @@ struct Vector3 final {
 	float y;
 	float z;
 
-	// 加算
-	Vector3 Add(const Vector3& v1, const Vector3& v2) { return {v1.x + v2.x, v1.y + v2.y, v1.z + v2.z}; }
-	Vector3 operator+(const Vector3& other) const { return { x + other.x, y + other.y, z + other.z }; }
-	Vector3 operator+=(const Vector3& other) {
-		x += other.x;
-		y += other.y;
-		z += other.z;
-		return *this;
-	}
+	/// <summary>
+	/// 比較
+	/// </summary>
+	friend bool operator==(const Vector3& vec1, const Vector3& vec2);
 
-	// 減算
-	Vector3 Subtract(const Vector3& v1, const Vector3& v2) {
-		return {v1.x - v2.x, v1.y - v2.y, v1.z - v2.z};
-	}
-	Vector3 operator-(const Vector3& other) { return Subtract({x, y, z}, other); }
-	Vector3 operator-(const Vector3& other) const { return {x - other.x, y - other.x, z - other.x}; }
+	/// <summary>
+	/// 加算
+	/// </summary>
+	static Vector3 Add(const Vector3& v1, const Vector3& v2);
+	friend Vector3& operator+=(Vector3& vec1, const Vector3& vec2);
+	friend Vector3 operator+(const Vector3& vec1, const Vector3& vec2);
 
-	// 乗算
-	Vector3 Multiply(float scalar, const Vector3& v) { return {scalar * v.x, scalar * v.y, scalar * v.z}; }
-	Vector3 operator*(float scalar) { return Multiply(scalar, {x ,y, z}); }
-	Vector3 operator*=(float scalar) {
-		x *= scalar;
-		y *= scalar;
-		z *= scalar;
-		return *this;
-	}
+	/// <summary>
+	/// 減算
+	/// </summary>
+	static Vector3 Subtract(const Vector3& v1, const Vector3& v2);
+	friend Vector3 operator-(const Vector3& vec1, const Vector3& vec2);
+	friend Vector3 operator-(const Vector3& vec);
 
-	// 除算
-	Vector3 operator/(float f) const { return {x / f, y / f, z / f}; }
+	/// <summary>
+	/// スカラー倍
+	/// </summary>
+	static Vector3 Multiply(float scalar, const Vector3& v);
+	friend Vector3 operator*(const Vector3& vec1, const Vector3& vec2);
+	friend Vector3 operator*(const Vector3& vec, float scalar);
+	friend Vector3 operator*(int scalar, const Vector3& vec);
 
-	// 内積
-	float Dot(const Vector3& v1, const Vector3& v2) const {
-		return {v1.x * v2.x + v1.y * v2.y + v1.z * v2.z};
-	}
+	/// <summary>
+	/// 除算
+	/// </summary>
+	friend Vector3 operator/(const Vector3& vec, float scalar);
 
-	// 長さ（ノルム）
-	float Length() const { return std::sqrt(Dot({x, y, z}, {x, y, z})); }
+	/// <summary>
+	/// 内積
+	/// </summary>
+	static float Dot(const Vector3& v1, const Vector3& v2);
 
-	// 正規化
-	Vector3 Normalize() const {
+	/// <summary>
+	/// クロス積(外積)
+	/// </summary>
+	static Vector3 Cross(const Vector3& v1, const Vector3& v2);
 
-		if (Length() != 0.0f) {
-			return *this / Length();
-		} else {
-			return *this;
-		}
-	}
+	/// <summary>
+	/// 長さ(ノルム)：平方根を求める
+	/// </summary>
+	static float Length(const Vector3& v);
 
-	// 線形補間
-	Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t) {
-		return v1 + (v2 - v1) * t;
-	}
-	float Lerp(const float f1, const float f2, float t) {
-		return f1 + (f2 - f1) * t;
-	}
+	/// <summary>
+	/// 長さ(ノルム)：平方根を求めない
+	/// </summary>
+	static float LengthSquare(const Vector3& v);
 
-	// 球面線形補間
-	Vector3 Slerp(const Vector3& v1, const Vector3& v2, float t) {
-		float s = Lerp(v1.Length(), v2.Length(), t);
-		Vector3 nv1 = v1.Normalize();
-		Vector3 nv2 = v2.Normalize();
-		float theta = 1 / std::cos(Dot(nv1, nv2));
+	/// <summary>
+	/// 正規化
+	/// </summary>
+	static Vector3 Normalize(const Vector3& v);
 
-		return ((nv1 * std::sin((1 - t) * theta) + nv2 * std::sin(t * theta)) / std::sin(theta)) * s;
-	}
+	/// <summary>
+	/// 垂直なベクトルを１つ求める
+	/// </summary>
+	static Vector3 Perpendicular(const Vector3& vector);
 
-	// 座標変換
+	/// <summary>
+	/// 正射影ベクトルを求める
+	/// </summary>
+	static Vector3 Project(const Vector3& v1, const Vector3& v2);
+
+	/// <summary>
+	/// 座標変換
+	/// </summary>
 	static Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix);
 
-	// ベクトル変換
+	/// <summary>
+	/// ベクトル変換
+	/// </summary>
 	static Vector3 TransformNormal(const Vector3& vector, const Matrix4x4& matrix);
+
+	static Vector3 GetXaxis(const Matrix4x4& m);
+	static Vector3 GetYaxis(const Matrix4x4& m);
+	static Vector3 GetZaxis(const Matrix4x4& m);
+
+	/// <summary>
+	/// 線形補間
+	/// </summary>
+	static Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t);
+	static float Lerp(const float f1, const float f2, float t);
+
+	/// <summary>
+	/// 球面線形補間
+	/// </summary>
+	static Vector3 Slerp(const Vector3& v1, const Vector3& v2, float t);
+
+	/// <summary>
+	/// Catmull-Rom補間
+	/// </summary>
+	static Vector3 CatmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t);
+
 };

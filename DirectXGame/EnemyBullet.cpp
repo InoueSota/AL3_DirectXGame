@@ -41,8 +41,8 @@ void EnemyBullet::Update() {
 	Vector3 toPlayer = player_->GetWorldPosition() - worldTransform_.translation_;
 
 	// ベクトルを正規化する
-	toPlayer = toPlayer.Normalize();
-	velocity_ = velocity_.Normalize();
+	toPlayer = toPlayer.Normalize(toPlayer);
+	velocity_ = velocity_.Normalize(velocity_);
 	// 球面線形補間により、今の速度と自キャラへのベクトルを内挿し、新たな速度とする
 	velocity_ = velocity_.Slerp(velocity_, toPlayer, 0.1f) * kBulletSpeed;
 
