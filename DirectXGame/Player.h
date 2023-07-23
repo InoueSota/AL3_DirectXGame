@@ -46,9 +46,19 @@ public:
 	void Rotate();
 
 	/// <summary>
+	/// 移動
+	/// </summary>
+	void Move();
+
+	/// <summary>
 	/// 攻撃
 	/// </summary>
 	void Attack();
+
+	/// <summary>
+	/// リロード
+	/// </summary>
+	void Reload();
 
 	/// <summary>
 	/// ワールド座標を取得
@@ -99,6 +109,20 @@ private:
 
 	// 弾
 	std::list<std::unique_ptr<PlayerBullet>> bullets_;
+
+	// 移動フラグ
+	bool isMove;
+	// 移動開始地点
+	Vector3 basePosition;
+	// 移動先地点
+	Vector3 targetPosition;
+	// 移動イージング変化値
+	float moveT;
+	// 移動イージング変化量
+	float moveTmag;
+
+	// 弾を打ったかフラグ
+	bool isShot;
 
 };
 

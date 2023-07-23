@@ -38,15 +38,7 @@ void GameScene::Initialize() {
 
 	// レールカメラの初期化
 	railCamera_ = std::make_unique<RailCamera>();
-	railCamera_->Initialize({0.0f, 0.0f, -50.0f}, 0.0f);
-	controlPoints_ = {
-	    {0,  0,  0},
-        {10, 10, 0},
-        {10, 15, 0},
-        {20, 15, 0},
-        {20,  0, 0},
-        {30,  0, 0},
-	};
+	railCamera_->Initialize();
 
 	// 天球の初期化
 	skyDome_ = std::make_unique<Skydome>();
@@ -116,7 +108,8 @@ void GameScene::Update(GameScene* gameScene) {
 	// 衝突判定と応答
 	ChackAllCollisions();
 
-#ifdef _DEBUG
+/*　デバッグカメラ
+	#ifdef _DEBUG
 	if (input_->TriggerKey(DIK_0)) {
 		isDebugCameraActive = true;
 	}
@@ -132,8 +125,13 @@ void GameScene::Update(GameScene* gameScene) {
 		viewProjection_.matProjection = railCamera_->GetViewProjection().matProjection;
 		viewProjection_.TransferMatrix();
 	}
-
 #endif
+*/
+
+	// ビュープロジェクション行列の更新と転送
+	viewProjection_.matView = railCamera_->GetViewProjection().matView;
+	viewProjection_.matProjection = railCamera_->GetViewProjection().matProjection;
+	viewProjection_.TransferMatrix();
 }
 
 void GameScene::Draw() {
@@ -178,7 +176,7 @@ void GameScene::Draw() {
 	}
 
 	// 線描画
-	DrawCatmullRomSpline();
+	//DrawCatmullRomSpline();
 
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
@@ -316,6 +314,7 @@ void GameScene::UpdateEnemyPopCommands(GameScene* gameScene) {
 	}
 }
 
+/*
 void GameScene::DrawCatmullRomSpline() {
 	
 	// 線分で描画する用の頂点リスト
@@ -331,7 +330,7 @@ void GameScene::DrawCatmullRomSpline() {
 			for (size_t j = 0; j < segmentCount + 1; j++) {
 				float t = 1.0f / segmentCount * j;
 				Vector3 pos;
-					
+
 				if (i > 0 && i < controlPoints_.size() - 2) {
 					pos = Vector3::CatmullRom(controlPoints_[i - 1], controlPoints_[i], controlPoints_[i + 1], controlPoints_[i + 2], t);
 				} 
@@ -353,4 +352,4 @@ void GameScene::DrawCatmullRomSpline() {
 	}
 	
 }
-
+*/

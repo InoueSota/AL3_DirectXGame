@@ -2,6 +2,7 @@
 
 #include "WorldTransform.h"
 #include "ViewProjection.h"
+#include <vector>
 
 /// <summary>
 /// レールカメラ
@@ -14,7 +15,7 @@ public:
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Initialize(const Vector3& position, const float radian);
+	void Initialize();
 
 	/// <summary>
 	/// 更新
@@ -37,6 +38,13 @@ private:
 	WorldTransform worldTransform_;
 	// ビュープロジェクション
 	ViewProjection viewProjection_;
+
+	// スプライン曲線制御点（通過点）
+	std::vector<Vector3> controlPoints_;
+	std::vector<Vector3> catmullRomPoints_;
+
+	int deltaEye;
+	int deltaTarget;
 
 };
 

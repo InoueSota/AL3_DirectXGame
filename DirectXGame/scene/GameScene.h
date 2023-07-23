@@ -19,7 +19,6 @@
 #include <sstream>
 #include "Collider.h"
 #include "ColliderManager.h"
-#include <vector>
 
 /// <summary>
 /// ゲームシーン
@@ -81,7 +80,7 @@ public: // メンバ関数
 	/// <summary>
 	/// 敵発生コマンドの更新
 	/// </summary>
-	void DrawCatmullRomSpline();
+	//void DrawCatmullRomSpline();
 
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
@@ -107,8 +106,6 @@ private: // メンバ変数
 
 	// レールカメラ
 	std::unique_ptr<RailCamera> railCamera_;
-	// スプライン曲線制御点（通過点）
-	std::vector<Vector3> controlPoints_;
 	// 天球
 	std::unique_ptr<Skydome> skyDome_;
 	// 自キャラ

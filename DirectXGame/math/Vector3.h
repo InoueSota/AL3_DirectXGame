@@ -112,5 +112,10 @@ struct Vector3 final {
 	/// Catmull-Rom補間
 	/// </summary>
 	static Vector3 CatmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t);
+	
+	/// <summary>
+	/// 円上の点を取得する
+	/// </summary>
+	static Vector3 CirclePoint(size_t separateCount, float radius, size_t i);
 
 };

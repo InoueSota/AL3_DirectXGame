@@ -1,5 +1,7 @@
 #include "Vector3.h"
 #include "Matrix4x4.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 
 
@@ -166,4 +168,9 @@ Vector3 Vector3::Slerp(const Vector3& v1, const Vector3& v2, float t)
 Vector3 Vector3::CatmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t)
 {
 	return ((-p0 + (3 * p1) - (3 * p2) + p3) * (t * t * t) + ((2 * p0) - (5 * p1) + (4 * p2) - p3) * (t * t) + (-p0 + p2) * t + (2 * p1)) / 2.0f;
+}
+
+Vector3 Vector3::CirclePoint(size_t separateCount, float radius, size_t i) {
+	float radian = (float)(360.0f / (float)separateCount * (float)i * (M_PI / 180.0f));
+	return Vector3(std::cosf(radian) * radius, std::sinf(radian) * radius, 0.0f);
 }

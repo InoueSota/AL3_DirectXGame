@@ -38,6 +38,14 @@ void Player::Initialize(Model* model, uint32_t textureHandle, uint32_t reticleTe
 	SetCollisionAttribute(kCollisionAttributePlayer);
 	// 衝突対象を自分の属性以外に設定
 	SetCollisionMask(~kCollisionAttributePlayer);
+
+	// 移動関係初期化
+	isMove = false;
+	moveT = 0.0f;
+	moveTmag = 0.1f;
+
+	// リロード関係初期化
+	isShot = false;
 }
 
 void Player::Update(const ViewProjection& viewProjection) {
@@ -53,47 +61,8 @@ void Player::Update(const ViewProjection& viewProjection) {
 	// 旋回処理
 	Rotate();
 
-	// キャラクターの移動ベクトル
-	Vector3 move = {0, 0, 0};
-
-	// キャラクターの移動速さ
-	const float kCharacterSpeed = 0.2f;
-
-	// ゲームパッドの状態を得る変数（XINPUT）
-	XINPUT_STATE joyState;
-
-	// ジョイスティック状態取得
-	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-		move.x += (float)joyState.Gamepad.sThumbLX / SHRT_MAX * kCharacterSpeed;
-		move.y += (float)joyState.Gamepad.sThumbLY / SHRT_MAX * kCharacterSpeed;
-	}
-
-	// 押した方向で移動ベクトルを変更（左右）
-	if (input_->PushKey(DIK_LEFT)) {
-		move.x -= kCharacterSpeed;
-	} else if (input_->PushKey(DIK_RIGHT)) {
-		move.x += kCharacterSpeed;
-	}
-
-	// 押した方向で移動ベクトルを変更（上下）
-	if (input_->PushKey(DIK_UP)) {
-		move.y += kCharacterSpeed;
-	} else if (input_->PushKey(DIK_DOWN)) {
-		move.y -= kCharacterSpeed;
-	}
-
-	// 座標移動（ベクトルの加算）
-	worldTransform_.translation_ += move;
-
-	// 移動限界座標
-	const float kMoveLimitX = 34.0f;
-	const float kMoveLimitY = 18.0f;
-
-	// 範囲を超えない処理
-	worldTransform_.translation_.x = max(worldTransform_.translation_.x, -kMoveLimitX);
-	worldTransform_.translation_.x = min(worldTransform_.translation_.x, +kMoveLimitX);
-	worldTransform_.translation_.y = max(worldTransform_.translation_.y, -kMoveLimitY);
-	worldTransform_.translation_.y = min(worldTransform_.translation_.y, +kMoveLimitY);
+	// 移動処理
+	Move();
 
 	// 攻撃処理
 	Attack();
@@ -108,6 +77,7 @@ void Player::Update(const ViewProjection& viewProjection) {
 	// キャラクターの座標を画面表示する処理
 	ImGui::Begin("Player");
 	ImGui::SliderFloat3("position", tmpFloat3, -50.0f, 50.0f);
+	ImGui::SliderFloat("moveTmag", &moveTmag, 0.0f, 0.2f);
 	ImGui::End();
 
 	// 入力された値をポジションに代入する
@@ -175,33 +145,100 @@ void Player::Rotate() {
 	}
 }
 
+void Player::Move() 
+{
+	// キャラクターの移動ベクトル
+	Vector3 move = {0, 0, 0};
+
+	// キャラクターの移動速さ
+	const float kHorizontalSpeed = 20.0f;
+	const float kVerticalSpeed = 10.0f;
+
+	// ゲームパッドの状態を得る変数（XINPUT）
+	XINPUT_STATE joyState;
+
+	// ジョイスティック状態取得
+	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+		move.x += (float)joyState.Gamepad.sThumbLX / SHRT_MAX * kHorizontalSpeed;
+		move.y += (float)joyState.Gamepad.sThumbLY / SHRT_MAX * kVerticalSpeed;
+	}
+
+	// 移動キーを押したとき
+	if ((input_->TriggerKey(DIK_UP) || input_->TriggerKey(DIK_DOWN) ||
+	     input_->TriggerKey(DIK_LEFT) || input_->TriggerKey(DIK_RIGHT)) &&
+	    !isMove) {
+
+		basePosition = worldTransform_.translation_;
+		targetPosition = worldTransform_.translation_;
+		moveT = 0.0f;
+
+		if (input_->TriggerKey(DIK_UP) && basePosition.y <= 1.0f) {
+			targetPosition.y = worldTransform_.translation_.y + kVerticalSpeed;
+			isMove = true;
+		}
+		if (input_->TriggerKey(DIK_DOWN) && basePosition.y >= -1.0f) {
+			targetPosition.y = worldTransform_.translation_.y - kVerticalSpeed;
+			isMove = true;
+		}
+		if (input_->TriggerKey(DIK_LEFT) && basePosition.x >= -1.0f) {
+			targetPosition.x = worldTransform_.translation_.x - kVerticalSpeed;
+			isMove = true;
+		}
+		if (input_->TriggerKey(DIK_RIGHT) && basePosition.x <= 1.0f) {
+			targetPosition.x = worldTransform_.translation_.x + kVerticalSpeed;
+			isMove = true;
+		}
+	}
+
+	// イージングで移動する
+	if (isMove) {
+
+		moveT += moveTmag;
+		if (moveT >= 1.0f) {
+			moveT = 1.0f;
+		}
+		worldTransform_.translation_ = Vector3::Lerp(basePosition, targetPosition, moveT);
+
+		// 終了条件
+		if (moveT >= 1.0f) {
+			isMove = false;
+		}
+	}
+}
+
 void Player::Attack() {
 
-	//XINPUT_STATE joyState;
+	XINPUT_STATE joyState;
 
-	//// ゲームパッド未接続なら何もせず抜ける
-	//if (!Input::GetInstance()->GetJoystickState(0, joyState)) {
-	//	return;
-	//}
+	// ゲームパッドを接続しているなら
+	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
 
-	// Rトリガーを押していたら
-	//if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
-		// 弾の速度
-		const float kBulletSpeed = 1.5f;
-		Vector3 velocity = { worldTransform3DReticle_.matWorld_.GetTranslate() - worldTransform_.matWorld_.GetTranslate()};
-	    velocity = velocity.Normalize(velocity) * kBulletSpeed;
+		// Rトリガーを押していたら
+		if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
+			// 弾の速度
+			const float kBulletSpeed = 1.5f;
+			Vector3 velocity = {
+			    worldTransform3DReticle_.matWorld_.GetTranslate() -
+			    worldTransform_.matWorld_.GetTranslate()};
+			velocity = velocity.Normalize(velocity) * kBulletSpeed;
 
-		// 速度ベクトルを目標の向きに合わせて回転させる
-		velocity = Vector3::TransformNormal(velocity, worldTransform_.matWorld_);
+			// 速度ベクトルを目標の向きに合わせて回転させる
+			velocity = Vector3::TransformNormal(velocity, worldTransform_.matWorld_);
 
-		// 弾を生成し、初期化
-		std::unique_ptr<PlayerBullet> newBullet = std::make_unique<PlayerBullet>();
-		newBullet->Initialize(model_, worldTransform_.matWorld_.GetTranslate(), velocity);
+			// 弾を生成し、初期化
+			std::unique_ptr<PlayerBullet> newBullet = std::make_unique<PlayerBullet>();
+			newBullet->Initialize(model_, worldTransform_.matWorld_.GetTranslate(), velocity);
 
-		// 弾を登録する
-		bullets_.push_back(std::move(newBullet));
-	//}
+			// 弾を登録する
+			bullets_.push_back(std::move(newBullet));
+		}
+	}
 
+}
+
+void Player::Reload() 
+{
+	// 移動するまでに
 }
 
 // 親となるWorldTransformをセット
