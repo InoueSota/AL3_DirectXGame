@@ -33,6 +33,8 @@ void GameScene::Initialize() {
 	audio_ = Audio::GetInstance();
 	primitiveDrawer_ = PrimitiveDrawer::GetInstance();
 
+	bgm_ = audio_->LoadWave("BGM.wav");
+
 	// ファイル名を指定してテクスチャを読み込む
 	textureHandle_[0] = TextureManager::Load("player/player.png");
 	textureHandle_[1] = TextureManager::Load("reticle.png");
@@ -51,9 +53,20 @@ void GameScene::Initialize() {
 	enemytextureHandle_[6] = TextureManager::Load("enemy/red_7.png");
 	enemytextureHandle_[7] = TextureManager::Load("enemy/red_8.png");
 	enemytextureHandle_[8] = TextureManager::Load("enemy/red_9.png");
+	enemytextureHandle_[9] = TextureManager::Load("enemy/hp.png");
 
 	ui_base_ = TextureManager::Load("UI_base.png");
+	left = TextureManager::Load("left.png");
+	right = TextureManager::Load("right.png");
+	up = TextureManager::Load("up.png");
+	down = TextureManager::Load("down.png");
+	space = TextureManager::Load("space.png");
 	s_ui_base_ = Sprite::Create(ui_base_, Vector2((float)WinApp::kWindowWidth / 2.0f, (float)WinApp::kWindowHeight / 2.0f), {1, 1, 1, 1}, {0.5f, 0.5f});
+	s_left = Sprite::Create(left, Vector2((float)WinApp::kWindowWidth / 2.0f, (float)WinApp::kWindowHeight / 2.0f), {1, 1, 1, 1}, {0.5f, 0.5f});
+	s_right = Sprite::Create(right, Vector2((float)WinApp::kWindowWidth / 2.0f, (float)WinApp::kWindowHeight / 2.0f), {1, 1, 1, 1}, {0.5f, 0.5f});
+	s_up = Sprite::Create(up, Vector2((float)WinApp::kWindowWidth / 2.0f, (float)WinApp::kWindowHeight / 2.0f), {1, 1, 1, 1}, {0.5f, 0.5f});
+	s_down = Sprite::Create(down, Vector2((float)WinApp::kWindowWidth / 2.0f, (float)WinApp::kWindowHeight / 2.0f), {1, 1, 1, 1}, {0.5f, 0.5f});
+	s_space = Sprite::Create(space, Vector2((float)WinApp::kWindowWidth / 2.0f, (float)WinApp::kWindowHeight / 2.0f), {1, 1, 1, 1}, {0.5f, 0.5f});
 
 	// タイトル
 	titleTextureHandle_[0] = TextureManager::Load("title/background.png");
@@ -113,9 +126,15 @@ void GameScene::Initialize() {
 
 	// 衝突マネージャの生成
 	colliderManager_ = new ColliderManager();
+
+	frame = 0;
 }
 
 void GameScene::Update(GameScene* gameScene) {
+
+	if (!audio_->IsPlaying(bgm_)) {
+		audio_->PlayWave(bgm_, true, 0.1f);
+	}
 
 	switch (scene) {
 	case GameScene::Title:
@@ -125,7 +144,28 @@ void GameScene::Update(GameScene* gameScene) {
 		title_[1]->SetPosition(titlePosition_);
 
 		if (input_->TriggerKey(DIK_SPACE)) {
+			player_.reset();
+			for (std::list<std::unique_ptr<Enemy>>::iterator it = enemy_.begin(); it != enemy_.end(); ++it) {
+				if ((*it)) {
+					(*it).reset();
+				}
+			}
+			railCamera_.reset();
+
 			deathCount_ = 0;
+			frame = 0;
+			// ビュープロジェクションの初期化
+
+			railCamera_ = std::make_unique<RailCamera>();
+			railCamera_->Initialize();
+			player_ = std::make_unique<Player>();
+			player_->SetParent(&railCamera_->GetWorldTransform());
+			player_->Initialize(modelPlayer_, modelBullet_, textureHandle_);
+			// バッファをクリアします。
+			enemyPopCommands.str("");
+			// 状態をクリアします。
+			enemyPopCommands.clear(std::stringstream::goodbit);
+			LoadEnemyPopData();
 			scene = Ingame;
 		}
 
@@ -133,20 +173,27 @@ void GameScene::Update(GameScene* gameScene) {
 
 	case GameScene::Ingame:
 
-		// デスフラグの立った弾を削除
-		bullets_.remove_if([](std::unique_ptr<EnemyBullet>& bullet) {
-			if (bullet->IsDead()) {
-				return true;
-			}
-			return false;
-		});
-		// デスフラグの立った敵を削除
-		enemy_.remove_if([](std::unique_ptr<Enemy>& enemy) {
-			if (enemy->IsDead()) {
-				return true;
-			}
-			return false;
-		});
+		frame++;
+
+		if (frame >= 150) {
+			// デスフラグの立った弾を削除
+			bullets_.remove_if([](std::unique_ptr<EnemyBullet>& bullet) {
+				if (bullet->IsDead()) {
+					return true;
+				}
+				return false;
+			});
+			// デスフラグの立った敵を削除
+			enemy_.remove_if([](std::unique_ptr<Enemy>& enemy) {
+				if (enemy) {
+					if (enemy->IsDead()) {
+						return true;
+					}
+				}
+				return false;
+			});
+		}
+
 
 		// レールカメラの更新
 		railCamera_->Update();
@@ -174,7 +221,9 @@ void GameScene::Update(GameScene* gameScene) {
 		}
 
 		// 衝突判定と応答
-		ChackAllCollisions();
+		if (frame >= 150) {
+			ChackAllCollisions();
+		}
 
 		// ビュープロジェクション行列の更新と転送
 		viewProjection_.matView = railCamera_->GetViewProjection().matView;
@@ -182,9 +231,12 @@ void GameScene::Update(GameScene* gameScene) {
 		viewProjection_.TransferMatrix();
 
 		for (std::list<std::unique_ptr<Enemy>>::iterator it = enemy_.begin(); it != enemy_.end(); ++it) {
-			if ((*it)->IsDead()) {
-				deathCount_++;
+			if ((*it)) {
+				if ((*it)->IsDead()) {
+					deathCount_++;
+				}
 			}
+
 		}
 
 		if (player_->IsDead()) {
@@ -261,11 +313,13 @@ void GameScene::Draw() {
 		// 敵キャラの描画
 		for (std::list<std::unique_ptr<Enemy>>::iterator it = enemy_.begin(); it != enemy_.end();
 		     ++it) {
-			for (std::list<std::unique_ptr<EnemyBullet>>::iterator bullet = bullets_.begin();
-			     bullet != bullets_.end(); ++bullet) {
-				(*bullet)->Draw(viewProjection_);
+			if ((*it)) {
+				for (std::list<std::unique_ptr<EnemyBullet>>::iterator bullet = bullets_.begin();
+				     bullet != bullets_.end(); ++bullet) {
+					(*bullet)->Draw(viewProjection_);
+				}
+				(*it)->Draw(viewProjection_);
 			}
-			(*it)->Draw(viewProjection_);
 		}
 
 		break;
@@ -299,10 +353,44 @@ void GameScene::Draw() {
 	
 		s_ui_base_->Draw();
 
+		if (input_->PushKey(DIK_LEFT)) {
+			s_left->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+		} else {
+			s_left->SetColor({1.0f, 1.0f, 1.0f, 0.3f});
+		}
+		if (input_->PushKey(DIK_RIGHT)) {
+			s_right->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+		} else {
+			s_right->SetColor({1.0f, 1.0f, 1.0f, 0.3f});
+		}
+		if (input_->PushKey(DIK_UP)) {
+			s_up->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+		} else {
+			s_up->SetColor({1.0f, 1.0f, 1.0f, 0.3f});
+		}
+		if (input_->PushKey(DIK_DOWN)) {
+			s_down->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+		} else {
+			s_down->SetColor({1.0f, 1.0f, 1.0f, 0.3f});
+		}
+		if (input_->PushKey(DIK_SPACE)) {
+			s_space->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+		} else {
+			s_space->SetColor({1.0f, 1.0f, 1.0f, 0.3f});
+		}
+
+		s_left->Draw();
+		s_right->Draw();
+		s_up->Draw();
+		s_down->Draw();
+		s_space->Draw();
+
 		player_->DrawUI();
 
 		for (std::list<std::unique_ptr<Enemy>>::iterator it = enemy_.begin(); it != enemy_.end(); ++it) {
-			(*it)->DrawUI();
+			if (*it) {
+				(*it)->DrawUI();
+			}
 		}
 
 		break;
@@ -342,7 +430,9 @@ void GameScene::ChackAllCollisions() {
 		colliderManager_->GetCollider(playerbullet.get());
 	}
 	for (auto& enemy : enemy_) {
-		colliderManager_->GetCollider(enemy.get());
+		if (enemy) {
+			colliderManager_->GetCollider(enemy.get());
+		}
 	}
 	for (auto& enemybullet : bullets_) {
 		colliderManager_->GetCollider(enemybullet.get());

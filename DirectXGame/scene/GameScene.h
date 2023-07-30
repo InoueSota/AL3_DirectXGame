@@ -96,9 +96,11 @@ private:
 	Input* input_ = nullptr;
 	Audio* audio_ = nullptr;
 
+	uint32_t bgm_;
+
 	// テクスチャハンドル
 	uint32_t textureHandle_[7];
-	uint32_t enemytextureHandle_[9];
+	uint32_t enemytextureHandle_[10];
 
 	// タイトル
 	uint32_t titleTextureHandle_[2];
@@ -115,7 +117,17 @@ private:
 
 	// スプライト類（主にUI）
 	uint32_t ui_base_ = 0;
+	uint32_t left = 0;
+	uint32_t right = 0;
+	uint32_t up = 0;
+	uint32_t down = 0;
+	uint32_t space = 0;
 	Sprite* s_ui_base_ = nullptr;
+	Sprite* s_left = nullptr;
+	Sprite* s_right = nullptr;
+	Sprite* s_up = nullptr;
+	Sprite* s_down = nullptr;
+	Sprite* s_space = nullptr;
 	
 	// 3Dモデルデータ
 	Model* model_ = nullptr;
@@ -148,6 +160,8 @@ private:
 	std::stringstream enemyPopCommands;
 	bool isWait_ = false;
 	int32_t interval_ = 0;
+
+	int frame;
 
 	// 当たり判定
 	ColliderManager* colliderManager_ = nullptr;

@@ -35,7 +35,7 @@ public:
 	/// <param name="model">モデル</param>
 	/// <param name="position">初期座標</param>
 	/// <param name="velocity">速度</param>
-	void Initialize(Model* model, Model* bulletModel, const Vector3& position, const Vector3& velocity, GameScene* gameScene, const WorldTransform* parent, RailCamera* railCamera, uint32_t textureHandle[4]);
+	void Initialize(Model* model, Model* bulletModel, const Vector3& position, const Vector3& velocity, GameScene* gameScene, const WorldTransform* parent, RailCamera* railCamera, uint32_t textureHandle[10]);
 
 	/// <summary>
 	/// 更新
@@ -127,9 +127,7 @@ private:
 	// 体力
 	int hp;
 
-	int bullet_1;
-	int bullet_2;
-	int bullet_3;
+	int bullet_[5];
 	int beforeFire_;
 	int interval_;
 	bool isStart;
@@ -141,10 +139,11 @@ private:
 	int frame;
 
 	Vector3 targetPosition_[9];
-	Vector3 bulletTarget_[3];
+	Vector3 bulletTarget_[5];
 
 	// 自キャラ
 	Player* player_;
 
 	Sprite* red[9];
+	Sprite* hp_bar;
 };
