@@ -77,13 +77,6 @@ public: // メンバ関数
 	/// </summary>
 	void UpdateEnemyPopCommands(GameScene* gameScene);
 
-	/// <summary>
-	/// 敵発生コマンドの更新
-	/// </summary>
-	//void DrawCatmullRomSpline();
-
-private: 
-
 	// シーン
 	enum Scene {
 		Title,
@@ -91,6 +84,14 @@ private:
 		Result
 	};
 	Scene scene = Title;
+
+	/// <summary>
+	/// フェード処理
+	/// </summary>
+	bool Fade();
+
+private: 
+
 
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -171,4 +172,10 @@ private:
 	// デバッグカメラ
 	DebugCamera* debugCamera_ = nullptr;
 
+	uint32_t u_black;
+	Sprite* s_black;
+	bool isStartFadeIn;
+	bool isStartFadeOut;
+	float alphaT;
+	float alpha;
 };

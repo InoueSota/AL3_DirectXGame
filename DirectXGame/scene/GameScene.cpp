@@ -128,6 +128,13 @@ void GameScene::Initialize() {
 	colliderManager_ = new ColliderManager();
 
 	frame = 0;
+
+	isStartFadeIn = false;
+	isStartFadeOut = false;
+	alphaT = 0.0f;
+	alpha = 0.0f;
+	u_black = TextureManager::Load("black.png");
+	s_black = Sprite::Create(u_black, Vector2((float)WinApp::kWindowWidth / 2.0f, (float)WinApp::kWindowHeight / 2.0f), {1, 1, 1, alpha}, {0.5f, 0.5f});
 }
 
 void GameScene::Update(GameScene* gameScene) {
@@ -139,13 +146,26 @@ void GameScene::Update(GameScene* gameScene) {
 	switch (scene) {
 	case GameScene::Title:
 
+		if (!isStartFadeOut && alpha > 0.0f) {
+			alphaT = 0.0f;
+			isStartFadeOut = true;
+		}
+		if (isStartFadeOut) {
+			Fade();
+		}
+
 		theta += 0.03f;
 		titlePosition_.y = (float)WinApp::kWindowHeight / 2.0f - 15.0f + 20.0f * std::sinf(theta);
 		title_[1]->SetPosition(titlePosition_);
 
 		if (input_->TriggerKey(DIK_SPACE)) {
+			isStartFadeIn = true;
+		}
+
+		if (isStartFadeIn && Fade()) {
 			player_.reset();
-			for (std::list<std::unique_ptr<Enemy>>::iterator it = enemy_.begin(); it != enemy_.end(); ++it) {
+			for (std::list<std::unique_ptr<Enemy>>::iterator it = enemy_.begin();
+			     it != enemy_.end(); ++it) {
 				if ((*it)) {
 					(*it).reset();
 				}
@@ -154,24 +174,35 @@ void GameScene::Update(GameScene* gameScene) {
 
 			deathCount_ = 0;
 			frame = 0;
-			// ビュープロジェクションの初期化
 
 			railCamera_ = std::make_unique<RailCamera>();
 			railCamera_->Initialize();
+
 			player_ = std::make_unique<Player>();
 			player_->SetParent(&railCamera_->GetWorldTransform());
 			player_->Initialize(modelPlayer_, modelBullet_, textureHandle_);
-			// バッファをクリアします。
+
 			enemyPopCommands.str("");
-			// 状態をクリアします。
 			enemyPopCommands.clear(std::stringstream::goodbit);
 			LoadEnemyPopData();
+
+			alpha = 1.0f;
+			isStartFadeIn = false;
+			isStartFadeOut = false;
 			scene = Ingame;
 		}
 
 		break;
 
 	case GameScene::Ingame:
+
+		if (!isStartFadeOut && alpha > 0.0f) {
+			alphaT = 0.0f;
+			isStartFadeOut = true;
+		}
+		if (isStartFadeOut && !isStartFadeIn) {
+			Fade();
+		}
 
 		frame++;
 
@@ -244,12 +275,27 @@ void GameScene::Update(GameScene* gameScene) {
 		}
 
 		if (deathCount_ >= 1 || deathCount_ <= -1) {
+			isStartFadeIn = true;
+		}
+
+		if (isStartFadeIn && Fade()) {
+			isStartFadeIn = false;
+			isStartFadeOut = false;
+			alpha = 1.0f;
 			scene = Result;
 		}
 
 		break;
 
 	case GameScene::Result:
+
+		if (!isStartFadeOut && alpha > 0.0f) {
+			alphaT = 0.0f;
+			isStartFadeOut = true;
+		}
+		if (isStartFadeOut) {
+			Fade();
+		}
 
 		theta2 += 0.03f;
 		resultPosition_.y = (float)WinApp::kWindowHeight / 2.0f - 15.0f + 20.0f * std::sinf(theta2);
@@ -260,7 +306,14 @@ void GameScene::Update(GameScene* gameScene) {
 			result_[3]->SetPosition(resultPosition_);
 		}
 
-		if (input_->TriggerKey(DIK_SPACE)) {
+		if (!isStartFadeOut && input_->TriggerKey(DIK_SPACE)) {
+			isStartFadeIn = true;
+		}
+
+		if (isStartFadeIn && Fade()) {
+			isStartFadeIn = false;
+			isStartFadeOut = false;
+			alpha = 1.0f;
 			scene = Title;
 		}
 
@@ -268,8 +321,6 @@ void GameScene::Update(GameScene* gameScene) {
 	default:
 		break;
 	}
-
-
 }
 
 void GameScene::Draw() {
@@ -409,6 +460,8 @@ void GameScene::Draw() {
 		break;
 	}
 
+	s_black->SetColor({1.0f, 1.0f, 1.0f, alpha});
+	s_black->Draw();
 
 	// スプライト描画後処理
 	Sprite::PostDraw();
@@ -534,42 +587,29 @@ void GameScene::UpdateEnemyPopCommands(GameScene* gameScene) {
 	}
 }
 
-/*
-void GameScene::DrawCatmullRomSpline() {
-	
-	// 線分で描画する用の頂点リスト
-	std::vector<Vector3> pointDrawing;
-	// 線分の数
-	const size_t segmentCount = 20;
-	// スプライン曲線の制御点分回す
-	if (controlPoints_.size() >= 4) {
+bool GameScene::Fade() {
 
-		for (size_t i = 0; i < controlPoints_.size(); i++) {
+	if (isStartFadeIn) {
 
-			// 線分の数+1個分の頂点座標を計算
-			for (size_t j = 0; j < segmentCount + 1; j++) {
-				float t = 1.0f / segmentCount * j;
-				Vector3 pos;
+		alphaT += 0.03f;
+		alpha = Vector3::Lerp(0.0f, 1.0f, alphaT);
 
-				if (i > 0 && i < controlPoints_.size() - 2) {
-					pos = Vector3::CatmullRom(controlPoints_[i - 1], controlPoints_[i], controlPoints_[i + 1], controlPoints_[i + 2], t);
-				} 
-				else if (i == 0) {
-					pos = Vector3::CatmullRom(controlPoints_[i], controlPoints_[i], controlPoints_[i + 1], controlPoints_[i + 2], t);
-				} 
-				else if (i < controlPoints_.size() - 1) {
-					pos = Vector3::CatmullRom(controlPoints_[i - 1], controlPoints_[i], controlPoints_[i + 1], controlPoints_[i + 1], t);
-				}
-				// 描画用頂点リストに追加
-				pointDrawing.push_back(pos);
-			}
+		if (alphaT >= 1.0f) {
+			return true;
 		}
+		
+	} else if (isStartFadeOut) {
+
+		alphaT += 0.03f;
+		alpha = Vector3::Lerp(1.0f, 0.0f, alphaT);
+
+		if (alphaT >= 1.0f) {
+			isStartFadeOut = false;
+		}
+	
+	} else {
+		alphaT = 0.0f;
 	}
 
-	primitiveDrawer_->SetViewProjection(&viewProjection_);
-	for (size_t i = 0; i < pointDrawing.size() - 1; i++) {
-		primitiveDrawer_->DrawLine3d(pointDrawing[i], pointDrawing[i + 1], {1.0f, 1.0f, 1.0f, 1.0f});
-	}
-	
+	return false;
 }
-*/

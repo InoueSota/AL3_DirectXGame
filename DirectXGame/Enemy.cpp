@@ -83,7 +83,6 @@ void Enemy::Update(const WorldTransform* parent) {
 		isDead_ = true;
 	}
 
-
 	if (hp <= 30) {
 		if (interval_ < 120) {
 			beforeFire_ = 0;
