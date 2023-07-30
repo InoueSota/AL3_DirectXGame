@@ -96,17 +96,4 @@ void RailCamera::Update() {
 	// WorldTransformのワールド行列再計算
 	worldTransform_.matWorld_ = Matrix4x4::MakeAffineMatrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
 
-	// カメラの座標を画面表示する処理
-	float tmpTransfrom3[3] = {worldTransform_.translation_.x, worldTransform_.translation_.y, worldTransform_.translation_.z};
-	float tmpRotation3[3] = {worldTransform_.rotation_.x, worldTransform_.rotation_.y, worldTransform_.rotation_.z};
-	ImGui::Begin("Camera");
-	ImGui::SliderFloat3("translation", tmpTransfrom3, -1000.0f, 1000.0f);
-	ImGui::SliderFloat3("rotation", tmpRotation3, -10.0f, 10.0f);
-	ImGui::SliderInt("deltaEye", &deltaEye, 0, 1000);
-	ImGui::SliderInt("deltaTarget", &deltaTarget, 0, 1000);
-	ImGui::End();
-
-	// 入力された値をポジションに代入する
-	worldTransform_.translation_ = {tmpTransfrom3[0], tmpTransfrom3[1], tmpTransfrom3[2]};
-	worldTransform_.rotation_ = {tmpRotation3[0], tmpRotation3[1], tmpRotation3[2]};
 }

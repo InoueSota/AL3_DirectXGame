@@ -82,16 +82,47 @@ public: // メンバ関数
 	/// </summary>
 	//void DrawCatmullRomSpline();
 
-private: // メンバ変数
+private: 
+
+	// シーン
+	enum Scene {
+		Title,
+		Ingame,
+		Result
+	};
+	Scene scene = Title;
+
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
 	Audio* audio_ = nullptr;
 
 	// テクスチャハンドル
-	uint32_t reticleTextureHandle_ = 0;
-	uint32_t textureHandle_ = 0;
+	uint32_t textureHandle_[7];
+	uint32_t enemytextureHandle_[9];
+
+	// タイトル
+	uint32_t titleTextureHandle_[2];
+	Sprite* title_[2];
+	Vector2 titlePosition_;
+	float theta;
+
+	// リザルト
+	uint32_t resultTextureHandle_[4];
+	Sprite* result_[4];
+	Vector2 resultPosition_;
+	float theta2;
+	int deathCount_;
+
+	// スプライト類（主にUI）
+	uint32_t ui_base_ = 0;
+	Sprite* s_ui_base_ = nullptr;
+	
 	// 3Dモデルデータ
 	Model* model_ = nullptr;
+	Model* modelPlayer_ = nullptr;
+	Model* modelBullet_ = nullptr;
+	Model* modelEnemy_ = nullptr;
+	Model* modelEnemyBullet_ = nullptr;
 	Model* modelSkydome_ = nullptr;
 
 	// 線描画

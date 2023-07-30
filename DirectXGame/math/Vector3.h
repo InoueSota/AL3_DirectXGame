@@ -102,6 +102,7 @@ struct Vector3 final {
 	/// </summary>
 	static Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t);
 	static float Lerp(const float f1, const float f2, float t);
+	static float Lerp(const int f1, const int f2, float t);
 
 	/// <summary>
 	/// 球面線形補間

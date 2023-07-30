@@ -5,26 +5,34 @@
 #include "CollisionConfig.h"
 
 
-
 Player::Player() {}
 Player::~Player() {
 
 	// 2Dレティクル解放
 	delete sprite2DReticle_;
+
+	// 画像解放
+	delete bulletCount_1;
+	delete bulletCount_2;
+
+	for (int i = 0; i < 3; i++) {
+		delete life_[i];
+	}
 }
 
-void Player::Initialize(Model* model, uint32_t textureHandle, uint32_t reticleTextureHandle) {
+void Player::Initialize(Model* model, Model* bulletModel, uint32_t textureHandle[7]) {
 
 	// NULLポインタチェック
 	assert(model);
 
 	// 引数として受け取ったデータをメンバ変数に記録する
 	model_ = model;
-	textureHandle_ = textureHandle;
+	bulletModel_ = bulletModel;
+	textureHandle_ = textureHandle[0];
 
 	// ワールド変換の初期化
 	worldTransform_.Initialize();
-	worldTransform_.translation_ = { 0.0f, 0.0f, 50.0f};
+	worldTransform_.translation_ = { -10.0f, 0.0f, 50.0f};
 
 	// シングルトンインスタンスを取得する
 	input_ = Input::GetInstance();
@@ -32,7 +40,16 @@ void Player::Initialize(Model* model, uint32_t textureHandle, uint32_t reticleTe
 	// 3Dレティクルのワールドトランスフォーム初期化
 	worldTransform3DReticle_.Initialize();
 	// スプライト生成
-	sprite2DReticle_ = Sprite::Create(reticleTextureHandle, Vector2((float)WinApp::kWindowWidth / 2.0f, (float)WinApp::kWindowHeight / 2.0f), {1, 1, 1, 1}, {0.5f, 0.5f});
+	sprite2DReticle_ = Sprite::Create(textureHandle[1], Vector2((float)WinApp::kWindowWidth / 2.0f, (float)WinApp::kWindowHeight / 2.0f), {1, 1, 1, 1}, {0.5f, 0.5f});
+	bulletCount_1 = Sprite::Create(textureHandle[2], Vector2({1180.0f, 150.0f}), {1, 1, 1, 1}, {0.5f, 0.5f});
+	bulletCount_2 = Sprite::Create(textureHandle[3], Vector2({1090.0f, 150.0f}), {1, 1, 1, 1}, {0.5f, 0.5f});
+
+	life_[0] = Sprite::Create(textureHandle[4], Vector2((float)WinApp::kWindowWidth / 2.0f, (float)WinApp::kWindowHeight / 2.0f), {1, 1, 1, 1}, {0.5f, 0.5f});
+	life_[1] = Sprite::Create(textureHandle[5], Vector2((float)WinApp::kWindowWidth / 2.0f, (float)WinApp::kWindowHeight / 2.0f), {1, 1, 1, 1}, {0.5f, 0.5f});
+	life_[2] = Sprite::Create(textureHandle[6], Vector2((float)WinApp::kWindowWidth / 2.0f, (float)WinApp::kWindowHeight / 2.0f), {1, 1, 1, 1}, {0.5f, 0.5f});
+	isHit = false;
+	interval = 0;
+	hp_ = 3;
 
 	// 衝突属性を設定
 	SetCollisionAttribute(kCollisionAttributePlayer);
@@ -44,11 +61,21 @@ void Player::Initialize(Model* model, uint32_t textureHandle, uint32_t reticleTe
 	moveT = 0.0f;
 	moveTmag = 0.1f;
 
+	// 攻撃関係初期化
+	isStartAttack = false;
+	attackBulletCount = 5;
+	attackIntervalTime = 0;
+	rockOnPosition = {-10.0f, 0.0f, 100.0f};
+
 	// リロード関係初期化
 	isShot = false;
+	isStartReload = false;
+	reloadT = 0.0f;
+	
+	isDead_ = false;
 }
 
-void Player::Update(const ViewProjection& viewProjection) {
+void Player::Update(const ViewProjection& viewProjection, const WorldTransform* parent) {
 
 	// デスフラグの立った弾を削除
 	bullets_.remove_if([](std::unique_ptr<PlayerBullet>& bullet) {
@@ -65,25 +92,23 @@ void Player::Update(const ViewProjection& viewProjection) {
 	Move();
 
 	// 攻撃処理
-	Attack();
+	Attack(parent);
+
+	if (endBulletCount >= 15) {
+		moveTmag = 0.05f;
+		worldTransform_.rotation_.y = (float)(270.0f * (3.14159265358979323846 / 180.0f));
+	} else if (endBulletCount >= 10) {
+		moveTmag = 0.075f;
+		worldTransform_.rotation_.y = 0.0f;
+	} else {
+		moveTmag = 0.1f;
+		worldTransform_.rotation_.y = 0.0f;
+	}
 
 	// 弾更新
 	for (std::list<std::unique_ptr<PlayerBullet>>::iterator it = bullets_.begin(); it != bullets_.end(); ++it) {
 		(*it)->Update();
 	}
-
-	// ImGuiで値を入力する変数
-	float tmpFloat3[3] = {worldTransform_.translation_.x, worldTransform_.translation_.y, worldTransform_.translation_.z};
-	// キャラクターの座標を画面表示する処理
-	ImGui::Begin("Player");
-	ImGui::SliderFloat3("position", tmpFloat3, -50.0f, 50.0f);
-	ImGui::SliderFloat("moveTmag", &moveTmag, 0.0f, 0.2f);
-	ImGui::End();
-
-	// 入力された値をポジションに代入する
-	worldTransform_.translation_.x = tmpFloat3[0];
-	worldTransform_.translation_.y = tmpFloat3[1];
-	worldTransform_.translation_.z = tmpFloat3[2];
 
 	// 行列更新と転送
 	worldTransform_.UpdateMatrix();
@@ -113,6 +138,24 @@ void Player::Update(const ViewProjection& viewProjection) {
 	//sprite2DReticle_->SetPosition(Vector2(positionReticle.x, positionReticle.y));
 
 	MouseCursorReticle(viewProjection);
+
+	if (isHit) {
+
+		if (interval == 0) {
+			hp_--;
+		}
+
+		interval++;
+		if (interval >= 60) {
+			isHit = false;
+		}
+	} else {
+		interval = 0;
+	}
+
+	if (hp_ <= 0) {
+		isDead_ = true;
+	}
 }
 
 void Player::Draw(const ViewProjection& viewProjection) {
@@ -128,8 +171,17 @@ void Player::Draw(const ViewProjection& viewProjection) {
 
 void Player::DrawUI() {
 
-	// 2Dレティクルを描画
-	sprite2DReticle_->Draw();
+	// 弾関係描画
+	bulletCount_1->SetTextureRect({static_cast<float>(attackBulletCount % 10) * 300.0f, 0.0f}, {300.0f, 300.0f});
+	bulletCount_1->SetSize({150.0f, 150.0f});
+
+	bulletCount_2->SetTextureRect({std::floor(static_cast<float>(attackBulletCount / 10)) * 300.0f, 0.0f}, {300.0f, 300.0f});
+	bulletCount_2->SetSize({150.0f, 150.0f});
+
+	bulletCount_1->Draw();
+	bulletCount_2->Draw();
+
+	life_[hp_ - 1]->Draw();
 }
 
 void Player::Rotate() {
@@ -151,47 +203,41 @@ void Player::Move()
 	Vector3 move = {0, 0, 0};
 
 	// キャラクターの移動速さ
-	const float kHorizontalSpeed = 20.0f;
-	const float kVerticalSpeed = 10.0f;
-
-	// ゲームパッドの状態を得る変数（XINPUT）
-	XINPUT_STATE joyState;
-
-	// ジョイスティック状態取得
-	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
-		move.x += (float)joyState.Gamepad.sThumbLX / SHRT_MAX * kHorizontalSpeed;
-		move.y += (float)joyState.Gamepad.sThumbLY / SHRT_MAX * kVerticalSpeed;
-	}
+	const float kHorizontalSpeed = 18.0f;
+	const float kVerticalSpeed = 15.0f;
 
 	// 移動キーを押したとき
 	if ((input_->TriggerKey(DIK_UP) || input_->TriggerKey(DIK_DOWN) ||
 	     input_->TriggerKey(DIK_LEFT) || input_->TriggerKey(DIK_RIGHT)) &&
-	    !isMove) {
+	    !isMove && !isStartAttack) {
 
 		basePosition = worldTransform_.translation_;
 		targetPosition = worldTransform_.translation_;
+
 		moveT = 0.0f;
 
-		if (input_->TriggerKey(DIK_UP) && basePosition.y <= 1.0f) {
-			targetPosition.y = worldTransform_.translation_.y + kVerticalSpeed;
+		if (input_->TriggerKey(DIK_UP) && basePosition.y <= 1.0) {
+			targetPosition.y = basePosition.y + kVerticalSpeed;
 			isMove = true;
 		}
 		if (input_->TriggerKey(DIK_DOWN) && basePosition.y >= -1.0f) {
-			targetPosition.y = worldTransform_.translation_.y - kVerticalSpeed;
+			targetPosition.y = basePosition.y - kVerticalSpeed;
 			isMove = true;
 		}
-		if (input_->TriggerKey(DIK_LEFT) && basePosition.x >= -1.0f) {
-			targetPosition.x = worldTransform_.translation_.x - kVerticalSpeed;
+		if (input_->TriggerKey(DIK_LEFT) && basePosition.x >= -11.0f) {
+			targetPosition.x = basePosition.x - kHorizontalSpeed;
 			isMove = true;
 		}
-		if (input_->TriggerKey(DIK_RIGHT) && basePosition.x <= 1.0f) {
-			targetPosition.x = worldTransform_.translation_.x + kVerticalSpeed;
+		if (input_->TriggerKey(DIK_RIGHT) && basePosition.x <= -9.0f) {
+			targetPosition.x = basePosition.x + kHorizontalSpeed;
 			isMove = true;
 		}
 	}
 
 	// イージングで移動する
 	if (isMove) {
+
+		Reload();
 
 		moveT += moveTmag;
 		if (moveT >= 1.0f) {
@@ -206,31 +252,62 @@ void Player::Move()
 	}
 }
 
-void Player::Attack() {
+void Player::Attack(const WorldTransform* parent) {
 
-	XINPUT_STATE joyState;
+	// 移動していないときに弾を撃てる
+	if (!isMove) {
 
-	// ゲームパッドを接続しているなら
-	if (Input::GetInstance()->GetJoystickState(0, joyState)) {
+		// 押下時に残弾全消費するまで撃ち続ける
+		if (input_->TriggerKey(DIK_SPACE) && !isStartAttack) {
+			attackIntervalTime = 0;
+			isStartAttack = true;
+			isShot = true;
+		}
 
-		// Rトリガーを押していたら
-		if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
-			// 弾の速度
-			const float kBulletSpeed = 1.5f;
-			Vector3 velocity = {
-			    worldTransform3DReticle_.matWorld_.GetTranslate() -
-			    worldTransform_.matWorld_.GetTranslate()};
-			velocity = velocity.Normalize(velocity) * kBulletSpeed;
+		if (attackBulletCount > 0 && isStartAttack) {
 
-			// 速度ベクトルを目標の向きに合わせて回転させる
-			velocity = Vector3::TransformNormal(velocity, worldTransform_.matWorld_);
+			if (attackIntervalTime <= 0)
+			{
+				// 弾の速度
+				const float kBulletSpeed = 1.5f;
+				Vector3 velocity = {rockOnPosition - worldTransform_.translation_};
+				velocity = velocity.Normalize(velocity) * kBulletSpeed;
+				
+				// 速度ベクトルを目標の向きに合わせて回転させる
+				velocity = Vector3::TransformNormal(velocity, worldTransform_.matWorld_);
 
-			// 弾を生成し、初期化
-			std::unique_ptr<PlayerBullet> newBullet = std::make_unique<PlayerBullet>();
-			newBullet->Initialize(model_, worldTransform_.matWorld_.GetTranslate(), velocity);
+				// 弾を生成し、初期化
+				std::unique_ptr<PlayerBullet> newBullet = std::make_unique<PlayerBullet>();
+				newBullet->Initialize(bulletModel_, parent, Vector3(worldTransform_.translation_.x + 3.0f, worldTransform_.translation_.y,worldTransform_.translation_.z), {-10.0f, 0.0f, 100.0f});
 
-			// 弾を登録する
-			bullets_.push_back(std::move(newBullet));
+				// 弾を登録する
+				bullets_.push_back(std::move(newBullet));
+
+				// 弾カウントを減らす
+				attackBulletCount--;
+
+				// 間隔代入
+				if (endBulletCount >= 15) {
+					attackIntervalTime = 30;
+					worldTransform_.rotation_.y = (float)(270.0f * (3.14159265358979323846 / 180.0f));
+
+				} else if (endBulletCount >= 10) {
+					worldTransform_.rotation_.y = 0.0f;
+					attackIntervalTime = 25;
+				} else {
+					worldTransform_.rotation_.y = 0.0f;
+					attackIntervalTime = 20;
+				}
+			}
+			// 攻撃に間隔を作る
+			if (attackIntervalTime > 0)
+			{
+				attackIntervalTime--;
+			}
+		}
+		else if (attackBulletCount <= 0 && isStartAttack)
+		{
+			isStartAttack = false;
 		}
 	}
 
@@ -238,7 +315,20 @@ void Player::Attack() {
 
 void Player::Reload() 
 {
-	// 移動するまでに
+	if (!isStartReload && attackBulletCount < 15 && moveT <= 0.0f) {
+		startBulletCount = attackBulletCount;
+		endBulletCount = startBulletCount + 5;
+		reloadT = 0.0f;
+		isStartReload = true;
+	}
+	if (isStartReload) {
+		reloadT += 0.1f;
+		attackBulletCount = static_cast<int>(std::round(Vector3::Lerp(startBulletCount, endBulletCount, reloadT)));
+		if (reloadT >= 1.0f) {
+			isShot = false;
+			isStartReload = false;
+		}
+	}
 }
 
 // 親となるWorldTransformをセット

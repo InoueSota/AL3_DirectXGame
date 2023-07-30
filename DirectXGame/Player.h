@@ -22,12 +22,12 @@ public:
 	/// </summary>
 	/// <param name="model">モデル</param>
 	/// <param name="textureHandle">テクスチャハンドル</param>
-	void Initialize(Model* model, uint32_t textureHandle, uint32_t reticleTextureHandle);
+	void Initialize(Model* model, Model* bulletModel, uint32_t textureHandle[7]);
 
 	/// <summary>
 	/// 更新
 	/// </summary>
-	void Update(const ViewProjection& viewProjection);
+	void Update(const ViewProjection& viewProjection, const WorldTransform* parent);
 
 	/// <summary>
 	/// 描画
@@ -53,7 +53,7 @@ public:
 	/// <summary>
 	/// 攻撃
 	/// </summary>
-	void Attack();
+	void Attack(const WorldTransform* parent);
 
 	/// <summary>
 	/// リロード
@@ -69,6 +69,11 @@ public:
 	/// ワールド座標を取得
 	/// </summary>
 	const Vector3& GetWorldPosition() const override { return worldTransform_.translation_; }
+
+	/// <summary>
+	/// ワールド座標を取得
+	/// </summary>
+	void SetRockOnPosition(const Vector3& enemyPosition) { rockOnPosition = enemyPosition; }
 
 	/// <summary>
 	/// 弾リストを取得
@@ -89,13 +94,16 @@ public:
 	///// <summary>
 	///// 衝突時に呼ばれる関数
 	///// </summary>
-	void OnCollision() override {};
+	void OnCollision() override { isHit = true; };
+
+	bool IsDead() { return isDead_; }
 
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;
 	// モデル
 	Model* model_ = nullptr;
+	Model* bulletModel_ = nullptr;
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0u;
 
@@ -106,6 +114,9 @@ private:
 	WorldTransform worldTransform3DReticle_;
 	// 2Dレティクル用スプライト
 	Sprite* sprite2DReticle_ = nullptr;
+	Sprite* bulletCount_1 = nullptr;
+	Sprite* bulletCount_2 = nullptr;
+	Sprite* life_[3];
 
 	// 弾
 	std::list<std::unique_ptr<PlayerBullet>> bullets_;
@@ -121,8 +132,28 @@ private:
 	// 移動イージング変化量
 	float moveTmag;
 
+	// 攻撃フラグ
+	bool isStartAttack;
+	// 攻撃弾数
+	int attackBulletCount;
+	// ロックオン座標
+	Vector3 rockOnPosition;
+	// 攻撃間隔
+	int attackIntervalTime;
+
+	int hp_;
+	bool isHit;
+	int interval;
+	bool isDead_;
+
 	// 弾を打ったかフラグ
 	bool isShot;
+	// リロードでこめる弾数
+	const int kReloadBulletCount = 5;
+	int startBulletCount;
+	int endBulletCount;
+	bool isStartReload;
+	float reloadT;
 
 };
 

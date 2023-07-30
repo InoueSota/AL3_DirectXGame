@@ -20,9 +20,10 @@ public:
 	/// 初期化
 	/// </summary>
 	/// <param name="model">モデル</param>
+	/// <param name="parent">親</param>
 	/// <param name="position">初期座標</param>
-	/// <param name="velocity">速度</param>
-	void Initialize(Model* model, const Vector3& position, const Vector3& velocity);
+	/// <param name="target">狙う座標</param>
+	void Initialize(Model* model, const WorldTransform* parent, const Vector3& position, const Vector3& target);
 
 	/// <summary>
 	/// 更新
@@ -49,6 +50,12 @@ public:
 	/// 衝突時に呼ばれる関数
 	/// </summary>
 	void OnCollision() override { isDead_ = true; };
+
+	/// <summary>
+	/// 親となるWorldTransformをセット
+	/// </summary>
+	/// <param name="parent">親となるWorldTransform</param>
+	void SetParent(const WorldTransform* parent);
 
 private:
 	// ワールド変換データ

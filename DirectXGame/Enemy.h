@@ -3,11 +3,13 @@
 #include "Vector3.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
-#include "TimedCall.h"
 #include <list>
 #include <functional>
 #include <memory>
 #include "Collider.h"
+#include "RailCamera.h"
+#include "Various.h"
+#include "Sprite.h"
 
 
 // 前方宣言
@@ -33,18 +35,23 @@ public:
 	/// <param name="model">モデル</param>
 	/// <param name="position">初期座標</param>
 	/// <param name="velocity">速度</param>
-	void Initialize(Model* model, const Vector3& position, const Vector3& velocity, GameScene* gameScene);
+	void Initialize(Model* model, Model* bulletModel, const Vector3& position, const Vector3& velocity, GameScene* gameScene, const WorldTransform* parent, RailCamera* railCamera, uint32_t textureHandle[4]);
 
 	/// <summary>
 	/// 更新
 	/// </summary>
-	void Update();
+	void Update(const WorldTransform* parent);
 
 	/// <summary>
 	/// 描画
 	/// </summary>
 	/// <param name="viewProjection">ビュープロジェクション（参照渡し）</param>
 	void Draw(const ViewProjection& viewProjection);
+
+	/// <summary>
+	/// UI描画
+	/// </summary>
+	void DrawUI();
 
 	/// <summary>
 	/// 行動遷移
@@ -57,19 +64,9 @@ public:
 	void Move(const Vector3& vector);
 
 	/// <summary>
-	/// 移動初期化
-	/// </summary>
-	void MoveInitialize();
-
-	/// <summary>
 	/// 弾発射
 	/// </summary>
-	void Fire();
-
-	/// <summary>
-	/// 弾を発射し、タイマーをリセットするコールバック関数
-	/// </summary>
-	void FireAndReset();
+	void Fire(const WorldTransform* parent, Vector3& bulletTarget);
 
 	/// <summary>
 	/// 現在座標の取得
@@ -99,23 +96,27 @@ public:
 	/// <summary>
 	/// 衝突時に呼ばれる関数
 	/// </summary>
-	void OnCollision() override { isDead_ = true; };
+	void OnCollision() override { hp--; };
+
+	/// <summary>
+	/// 親となるWorldTransformをセット
+	/// </summary>
+	/// <param name="parent">親となるWorldTransform</param>
+	void SetParent(const WorldTransform* parent);
 
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;
+	// レールカメラのワールド変換データ
+	RailCamera* railCamera_;
 	// モデル
 	Model* model_ = nullptr;
+	Model* bulletModel_ = nullptr;
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0u;
 
 	// ゲームシーン
 	GameScene* gameScene_ = nullptr;
-
-	// 発射タイマー
-	int32_t fireTimer_ = 0;
-	// 時限発動のリスト
-	std::list<std::unique_ptr<TimedCall>> timedCalls_;
 
 	// 行動遷移
 	BaseEnemyState* state_ = nullptr;
@@ -123,10 +124,27 @@ private:
 	bool isChangeState_ = false;
 	// デスフラグ
 	bool isDead_ = false;
+	// 体力
+	int hp;
+
+	int bullet_1;
+	int bullet_2;
+	int bullet_3;
+	int beforeFire_;
+	int interval_;
+	bool isStart;
 
 	// 速度
 	Vector3 velocity_;
 
+	// 毎フレーム加算
+	int frame;
+
+	Vector3 targetPosition_[9];
+	Vector3 bulletTarget_[3];
+
 	// 自キャラ
 	Player* player_;
+
+	Sprite* red[9];
 };

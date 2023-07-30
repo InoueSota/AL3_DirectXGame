@@ -1,19 +1,18 @@
 #pragma once
 #include <functional>
-
-
+#include <WorldTransform.h>
 
 class TimedCall {
 public:
 	/// <summary>
 	/// コンストラクタ
 	/// </summary>
-	TimedCall(std::function<void(void)> function, uint32_t time);
+	TimedCall(std::function<void(const WorldTransform* parent)> function, uint32_t time);
 
 	/// <summary>
 	/// 更新
 	/// </summary>
-	void Update();
+	void Update(const WorldTransform* parent);
 
 	/// <summary>
 	/// 完了ならtrueを返す
@@ -23,7 +22,7 @@ public:
 private:
 
 	// コールバック
-	std::function<void(void)> f;
+	std::function<void(const WorldTransform* parent)> f;
 
 	// 残り時間
 	uint32_t time_;

@@ -2,9 +2,9 @@
 
 
 
-TimedCall::TimedCall(std::function<void(void)> function, uint32_t time) : f(function), time_(time), isFinished_(false) {}
+TimedCall::TimedCall(std::function<void(const WorldTransform* parent)> function, uint32_t time) : f(function), time_(time), isFinished_(false) {}
 
-void TimedCall::Update() {
+void TimedCall::Update(const WorldTransform* parent) {
 
 	if (isFinished_) {
 		return;
@@ -13,6 +13,6 @@ void TimedCall::Update() {
 	if (time_ <= 0) {
 		isFinished_ = true;
 		// コールバック関数呼び出し
-		f();
+		f(parent);
 	}
 }

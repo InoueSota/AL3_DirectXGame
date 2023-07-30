@@ -155,6 +155,11 @@ float Vector3::Lerp(const float f1, const float f2, float t)
 	return f1 + (f2 - f1) * t;
 }
 
+float Vector3::Lerp(const int f1, const int f2, float t)
+{ 
+	return static_cast<float>(f1 + (f2 - f1)) * t;
+}
+
 Vector3 Vector3::Slerp(const Vector3& v1, const Vector3& v2, float t)
 {
 	float s = Lerp(Vector3::Length(v1), Vector3::Length(v2), t);

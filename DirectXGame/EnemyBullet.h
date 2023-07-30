@@ -22,7 +22,7 @@ public:
 	/// </summary>
 	/// <param name="model">モデル</param>
 	/// <param name="position">初期座標</param>
-	void Initialize(Model* model, const Vector3& position);
+	void Initialize(Model* model, const Vector3& position, const WorldTransform* parent, const Vector3& targetPosition);
 
 	/// <summary>
 	/// 更新
@@ -46,14 +46,15 @@ public:
 	const Vector3& GetWorldPosition() const override { return worldTransform_.translation_; }
 
 	/// <summary>
-	/// プレイヤーのポインタを共有する
-	/// </summary>
-	void SetPlayer(Player* player) { player_ = player; }
-
-	/// <summary>
 	/// 衝突時に呼ばれる関数
 	/// </summary>
-	void OnCollision() override { isDead_ = true; };
+	void OnCollision() override {  };
+
+	/// <summary>
+	/// 親となるWorldTransformをセット
+	/// </summary>
+	/// <param name="parent">親となるWorldTransform</param>
+	void SetParent(const WorldTransform* parent);
 
 private:
 	// ワールド変換データ
@@ -65,15 +66,15 @@ private:
 
 	// 速度
 	Vector3 velocity_;
+	// 狙うエリア座標
+	Vector3 targetPosition_;
 
 	// 寿命<frm>
-	static const int32_t kLifeTime = 60 * 5;
+	static const int32_t kLifeTime = 120;
 	// デスタイマー
 	int32_t deathTimer_ = kLifeTime;
 	// デスフラグ
 	bool isDead_ = false;
 
-	// 自キャラのポインタ
-	Player* player_;
 };
 
